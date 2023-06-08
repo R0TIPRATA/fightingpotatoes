@@ -1,0 +1,81 @@
+main{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.play-btn, .help-btn, .settings-btn {
+    display: block;
+    background-color: red;
+    border-radius: 50%;
+    height: 80px;
+    width: 80px;
+}
+
+button{
+    display:block;
+    cursor:pointer;
+    margin: 1em;
+}
+
+button:hover{
+    opacity: 0.7;
+}
+
+.buttons-wrapper{
+    display:flex;
+    justify-content: center;
+}
+
+.title-img{
+    display:block;
+    text-align: center;
+    height: 12vw;
+}
+
+.potato{
+    display: inline-block;
+}
+
+#potato2 {
+    -moz-transform: scaleX(-1);
+    -o-transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+}
+
+.potatoes-wrapper {
+    display: flex;
+    justify-content: center;
+}
+
+
+.action-area{
+    display: flex;
+    flex-flow: column wrap;
+    align-items: center;
+}
+
+.action-row{
+    display: flex;
+    justify-items: center;
+    align-items:center;
+    background-color: aqua;
+    height:100px;
+    margin-bottom:8px;
+    width:80%;
+}
+
+.key-sequence{
+    display:flex;
+    width: 100%;
+    background-color:blue;
+}
+
+.damage-points{
+    background-color: pink;
+}
+
+.hidden{
+    display: none;
+}
