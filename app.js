@@ -7,12 +7,16 @@
 let potatoOne = {
     colour: "#FD9800",
     div: "",
+    hp: 100,
+    attack: 0,
     keystrokeElementArr: [],
     activeKey: ""
 }
 
 let potatoTwo = {
     colour: "#6E1BD7",
+    hp: 100,
+    attack: 0,
     div: "",
     keystrokeElementArr: []
 }
@@ -78,6 +82,10 @@ const playScreen = () => {
             currentKeystroke.classList.add("correct");
             keystrokeElementArr.shift();
             potatoOne.keystrokeElementArr = keystrokeElementArr;
+            //increase damage points
+            potatoOne.attack += 10;
+            document.querySelector("#damage-points-1").children[1].innerText = potatoOne.attack;
+            //move on to the next key
             const nextKeystroke = keystrokeElementArr[0];
             potatoOne.activeKey = nextKeystroke.classList[1];
             console.log("new active key: " + potatoOne.activeKey);
@@ -85,7 +93,20 @@ const playScreen = () => {
             nextKeystroke.classList.add("active");
 
             console.log("after: " + potatoOne.keystrokeElementArr.length);
+
+        }else{
+            const keystrokeElementArr = potatoOne.keystrokeElementArr;
+            const currentKeystroke = keystrokeElementArr[0];
+            currentKeystroke.classList.remove("active");
+            currentKeystroke.classList.add("missed");
+            keystrokeElementArr.shift();
+            potatoOne.keystrokeElementArr = keystrokeElementArr; 
             //move on to the next key
+            const nextKeystroke = keystrokeElementArr[0];
+            potatoOne.activeKey = nextKeystroke.classList[1];
+            console.log("new active key: " + potatoOne.activeKey);
+            nextKeystroke.classList.remove("inactive");
+            nextKeystroke.classList.add("active");           
 
         }
 
