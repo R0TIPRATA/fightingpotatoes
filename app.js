@@ -1,5 +1,4 @@
 //create potato object
-
 //Types of screens:
 //title screen
 //play screen
@@ -7,12 +6,15 @@
 
 let potatoOne = {
     colour: "#FD9800",
-    div: ""
+    div: "",
+    keystrokeElementArr: [],
+    activeKey: ""
 }
 
 let potatoTwo = {
     colour: "#6E1BD7",
-    div: ""
+    div: "",
+    keystrokeElementArr: []
 }
 
 const render = () => {
@@ -60,25 +62,70 @@ const playScreen = () => {
     //set 10 keystrokes at a time
     //last keystroke is an enter or space, depending on player
     const keystrokeNum = 10;
-    setKeystrokes(10,"potatoOne");
-    
+    setKeystrokes(10,1);
+    //setKeystrokes(10,2);
+
+    //listen to keydown
+    document.addEventListener("keydown", (event) => {
+        //get active keys in line
+        //listen for active keys
+        if(event.key === potatoOne.activeKey){
+            // find next keySequence
+            console.log("before: " + potatoOne.keystrokeElementArr.length);
+            const keystrokeElementArr = potatoOne.keystrokeElementArr;
+            const currentKeystroke = keystrokeElementArr[0];
+            currentKeystroke.classList.remove("active");
+            currentKeystroke.classList.add("correct");
+            keystrokeElementArr.shift();
+            potatoOne.keystrokeElementArr = keystrokeElementArr;
+            const nextKeystroke = keystrokeElementArr[0];
+            potatoOne.activeKey = nextKeystroke.classList[1];
+            console.log("new active key: " + potatoOne.activeKey);
+            nextKeystroke.classList.remove("inactive");
+            nextKeystroke.classList.add("active");
+
+            console.log("after: " + potatoOne.keystrokeElementArr.length);
+            //move on to the next key
+
+        }
+
+    });
+
 }
 
-const setKeystrokes = (keyStrokeNum,potatoId) => {
-    const keySequence = document.querySelector(".key-sequence");
-    const keyStrokeArr = []; 
-    const possibleKeys = [ {keyStroke: "up", icon: "/up"}, {keyStroke: "down", icon: "/down"}, {keyStroke: "left", icon: "/left"}, {keyStroke: "right", icon: "/right"} ];
-    for(let i = 1 ; i <= keyStrokeNum - 1 ; i++){
-        const keyStrokeDiv = document.createElement("div");
-        keyStrokeDiv.classList.add("keystroke");
-        keyStrokeDiv.innerText = possibleKeys[Math.floor(Math.random() * 4)].icon;
-        //keyStrokeArr.push(keyStrokeDiv);
-        keySequence.append(keyStrokeDiv);
-    }
-    potatoId === potatoOne ? keyStrokeArr.push({keyStroke: "space", icon: "/space"}) : keyStrokeArr.push({keyStroke: "space", icon: "/space"});
+const setKeystrokes = (keystrokeNum,potatoId) => {
+    const keySequence = document.querySelector("#key-sequence-"+potatoId);
     console.log(keySequence);
+    const keystrokeArr = []; 
+    const possibleKeys = [ {keystroke: "ArrowUp", icon: "img/arrow-up.svg"}, {keystroke: "ArrowDown", icon: "img/arrow-down.svg"}, {keystroke: "ArrowLeft", icon: "img/arrow-left.svg"}, {keystroke: "ArrowRight", icon: "img/arrow-right.svg"} ];
+    for(let i = 1 ; i <= keystrokeNum - 1 ; i++){
+        const keystrokeElement = document.createElement("div");
+        const randKey = possibleKeys[Math.floor(Math.random() * 4)];
+        let keyStatus = "inactive";
+        if (i===1) { //initalize first key
+            keyStatus = "active";
+            potatoOne.activeKey = randKey.keystroke;
+            console.log(potatoOne.activeKey);
+        };
+        keystrokeElement.classList.add("keystroke",randKey.keystroke,keyStatus);
+        let keyIconElement = document.createElement("img");
+        keyIconElement.setAttribute("src",randKey.icon);
+        keystrokeElement.appendChild(keyIconElement);
+        //add event listener for each keystrokeElement
+        keystrokeArr.push(keystrokeElement);
+        //keySequence.appendChild(keystrokeElement);
+    }
+    potatoOne.keystrokeElementArr = keystrokeArr;
+    console.log(potatoOne.keystrokeElementArr);
+    //potatoId === 0 ? keystrokeArr.push({keystroke: "space", icon: "/space"}) : keystrokeArr.push({keystroke: "space", icon: "/space"});
+    keystrokeArr.forEach(keystroke => keySequence.appendChild(keystroke));
 }   
 
+const getActiveKeys = () => {
+
+}
+
+//const setActiveKeys = () => {}
 
 const createPotato = (potatoId) => {
     const div = document.createElement("div");
@@ -97,11 +144,5 @@ const createButton = (className) => {
     return btn;
 }
 
-
-//to do list:
-// - create title screen first
-// - create potato objects
-// - instructions
-// - play button
 
 render();

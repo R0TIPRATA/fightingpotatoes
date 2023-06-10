@@ -69,7 +69,22 @@ button:hover{
 .key-sequence{
     display:flex;
     width: 100%;
-    background-color:blue;
+}
+
+.active{
+    border: 2px solid blue;
+}
+
+.inactive{
+    background-color: gainsboro;
+}
+
+.correct{
+    background-color:yellowgreen;
+}
+
+.missed{
+    background-color: pink;
 }
 
 .damage-points{
