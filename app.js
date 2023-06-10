@@ -60,25 +60,33 @@ const playScreen = () => {
     //set 10 keystrokes at a time
     //last keystroke is an enter or space, depending on player
     const keystrokeNum = 10;
-    setKeystrokes(10,"potatoOne");
-    
+    setKeystrokes(10,1);
+    setKeystrokes(10,2);
 }
 
-const setKeystrokes = (keyStrokeNum,potatoId) => {
-    const keySequence = document.querySelector(".key-sequence");
-    const keyStrokeArr = []; 
-    const possibleKeys = [ {keyStroke: "up", icon: "/up"}, {keyStroke: "down", icon: "/down"}, {keyStroke: "left", icon: "/left"}, {keyStroke: "right", icon: "/right"} ];
-    for(let i = 1 ; i <= keyStrokeNum - 1 ; i++){
-        const keyStrokeDiv = document.createElement("div");
-        keyStrokeDiv.classList.add("keystroke");
-        keyStrokeDiv.innerText = possibleKeys[Math.floor(Math.random() * 4)].icon;
-        //keyStrokeArr.push(keyStrokeDiv);
-        keySequence.append(keyStrokeDiv);
-    }
-    potatoId === potatoOne ? keyStrokeArr.push({keyStroke: "space", icon: "/space"}) : keyStrokeArr.push({keyStroke: "space", icon: "/space"});
+const setKeystrokes = (keystrokeNum,potatoId) => {
+    const keySequence = document.querySelector("#key-sequence-"+potatoId);
     console.log(keySequence);
+    const keystrokeArr = []; 
+    const possibleKeys = [ {keystroke: "up", icon: "img/arrow-up.svg"}, {keystroke: "down", icon: "img/arrow-down.svg"}, {keystroke: "left", icon: "img/arrow-left.svg"}, {keystroke: "right", icon: "img/arrow-right.svg"} ];
+    for(let i = 1 ; i <= keystrokeNum - 1 ; i++){
+        const keystrokeElement = document.createElement("div");
+        keystrokeElement.classList.add("keystroke");
+        
+        const randKey = possibleKeys[Math.floor(Math.random() * 4)];
+        let keyIconElement = document.createElement("img");
+        keyIconElement.setAttribute("src",randKey.icon);
+        keystrokeElement.appendChild(keyIconElement);
+        //add event listener for each keystrokeElement
+        keystrokeElement.addEventListener("click",()=>null);
+        keystrokeArr.push(keystrokeElement);
+        //keySequence.appendChild(keystrokeElement);
+    }
+    //put key images in an array
+    //loop through and append
+    //potatoId === 0 ? keystrokeArr.push({keystroke: "space", icon: "/space"}) : keystrokeArr.push({keystroke: "space", icon: "/space"});
+    keystrokeArr.forEach( keystroke => keySequence.appendChild(keystroke));
 }   
-
 
 const createPotato = (potatoId) => {
     const div = document.createElement("div");
@@ -97,11 +105,5 @@ const createButton = (className) => {
     return btn;
 }
 
-
-//to do list:
-// - create title screen first
-// - create potato objects
-// - instructions
-// - play button
 
 render();
