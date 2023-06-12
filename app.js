@@ -82,8 +82,8 @@ const titleScreen = () => {
     //const potatoTwo = createPotato("potato2");
     // const potatoOne = new Potato(1);
     // const potatoTwo = new Potato(2);
-    potatoOne.div = createPotatoDiv(1);
-    potatoTwo.div = createPotatoDiv(2);
+    potatoOne.div = createPotatoDiv(potatoOne);
+    potatoTwo.div = createPotatoDiv(potatoTwo);
     const potatoesWrapper = document.createElement("div");
     potatoesWrapper.classList.add("potatoes-wrapper");
     potatoesWrapper.append(potatoOne.div,potatoTwo.div);
@@ -137,6 +137,9 @@ const playScreen = () => {
         console.log("potato " + receivingPotato.id + " hp: " + receivingPotato.hp);
         receivingPotato.hp -= attackingPotato.attack;
         console.log("potato " + receivingPotato.id + " hp: " + receivingPotato.hp);
+        //update hp div
+        const hpElement = document.getElementById("hp-"+ receivingPotato.id);
+        hpElement.innerText = receivingPotato.hp;
         //check if receiving potato hp = 0
         //if = 0, end game
         //else, reset attacking potato attack to 0
@@ -145,7 +148,6 @@ const playScreen = () => {
         //give attacking potato new key sequence
         clearKeystrokes(attackingPotato);
         setKeystrokes(10,attackingPotato);
-
     }
 
     const setCorrect = (potato, keystrokeElementArr) => {
@@ -212,13 +214,18 @@ const setKeystrokes = (keystrokeNum,potato) => {
 }   
 
 
-const createPotatoDiv = (potatoId) => {
+const createPotatoDiv = (potato) => {
     const div = document.createElement("div");
     div.classList.add("potato");
-    div.id = potatoId;
+    div.id = potato.id;
     const img = document.createElement("img");
     img.setAttribute("src","img/potato_knife.svg");
     div.appendChild(img);
+    //hp bar
+    const hp = document.createElement("p");
+    hp.id = "hp-" + potato.id;
+    hp.innerText = potato.hp
+    div.appendChild(hp);
     return div;
 }
 
