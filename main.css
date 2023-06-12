@@ -71,19 +71,19 @@ button:hover{
     width: 100%;
 }
 
-.active{
+.keystroke[data-keystroke-status="active"]{
     border: 2px solid blue;
 }
 
-.inactive{
+.keystroke[data-keystroke-status="inactive"]{
     background-color: gainsboro;
 }
 
-.correct{
+.keystroke[data-keystroke-status="correct"]{
     background-color:yellowgreen;
 }
 
-.missed{
+.keystroke[data-keystroke-status="missed"]{
     background-color: pink;
 }
 
