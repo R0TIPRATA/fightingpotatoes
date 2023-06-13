@@ -59,6 +59,74 @@ const Potato = class {
 
 }
 
+// const HealthBar = class {
+//     constructor(x,y,w,h,maxHp){
+//         this._x = x;
+//         this._y = y;
+//         this._w = w;
+//         this._h = h;
+//         this._maxHp = maxHp;
+//         this._maxWidth = w;
+//         this._hp = maxHp;
+//     }
+
+//     show(context){
+//         context.lineWidth = 4;
+//         context.strokeStyle = "#333";
+//         context.fillStyle = "green";
+//         context.backgroundColor= "pink";
+//         context.fillRect(this._x, this._y, this._maxWidth, this._h);
+//         context.strokeRect(this._x,this._y,thix._maxWidth, this._h);
+//     }
+
+//     updateHealth(hp){
+//         if (hp >= 0 ){
+//             this._health = hp;
+//             this._w = (this.hp/this.maxHp) * this._maxWidth;
+//         }
+//     }
+//     updateDamage(hp){
+//         if (hp >= 0 ){
+//             this._health = hp;
+//             this._w = (this.hp/this.maxHp) * this._maxWidth;
+//         }
+//     }
+// }
+
+// const createHp = () => {
+//     console.log("creating Hp bar");
+//     const canvas = document.querySelector("canvas");
+//     const context = canvas.getContext("2d"); //check what is this
+//     canvas.width = 320;
+//     canvas.height = 480;
+//     const width = canvas.width;
+//     const height = canvas.height;
+
+//     canvas.style.marginTop = window.innerHeight / 2 - height / 2 + "px";
+//     let health = 100;
+//     const healthBarWidth = 200;
+//     const healthBarHeight = 30;
+//     const x = width / 2 - healthBarWidth / 2;
+//     const y = height / 2 - healthBarHeight / 2;
+
+//     const healthBar = new HealthBar(x, y, healthBarWidth, healthBarHeight, health, "green");
+
+//     const frame = function() {
+//         context.clearRect(0, 0, width, height);
+//         healthBar.show(context);
+//         requestAnimationFrame(frame);
+//     }
+
+//     canvas.onclick = function() {
+//         health -= 10;
+//         healthBar.updateHealth(health);
+//     };
+
+//     frame();
+// }
+
+// createHp();
+
 let potatoOne = new Potato(0);
 let potatoTwo = new Potato(1);
 
@@ -71,6 +139,13 @@ const render = () => {
     titleScreen();
 }
 
+
+//=====================
+// Screens 
+// New screens are created based on events 
+//(e.g. on load, title screen appears, clicking on play btn starts game, etc)  
+//=====================
+
 const titleScreen = () => {
     const top = document.querySelector(".top");
     const bottom = document.querySelector(".bottom");
@@ -80,7 +155,7 @@ const titleScreen = () => {
     //add title 
     const titleImg = document.createElement("img");
     titleImg.classList.add("title-img");
-    titleImg.setAttribute("src", "/img/title.svg");
+    titleImg.setAttribute("src", "./img/title.svg");
     
     //make potato divs
     potatoOne.div = createPotatoDiv(potatoOne);
@@ -103,6 +178,20 @@ const titleScreen = () => {
     bottom.append(potatoesWrapper, buttonsWrapper);
 }
 
+const playScreen = () => {
+    document.querySelector(".buttons-wrapper") && document.querySelector(".buttons-wrapper").remove(); //if from title page, remove buttons
+    const top = document.querySelector(".top");
+    top.innerHTML = "";
+    top.append(createActionRowDiv(potatoOne),createActionRowDiv(potatoTwo));
+
+    const keystrokeNum = 10; //determines how many keys you want before attacking
+    setKeystrokes(keystrokeNum,potatoOne);
+    setKeystrokes(keystrokeNum,potatoTwo);
+    //resetValues();
+    //listen to keydown
+    document.addEventListener("keydown", EventHandlers.onKeydown);
+}
+
 const gameOverScreen = (winner) =>{
     document.removeEventListener("keydown",EventHandlers.onKeydown);
     //clear elements not needed
@@ -120,6 +209,12 @@ const gameOverScreen = (winner) =>{
     resetPotatoes();
 }    
 
+
+//=====================
+// Event handlers 
+// 
+//=====================
+
 const EventHandlers = {
     onKeydown: (event) => {
         const potatoOneKeys = {actionKeys: ["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"], finalKey: "Enter"};
@@ -133,55 +228,14 @@ const EventHandlers = {
     }
 }
 
-const playScreen = () => {
-    document.querySelector(".buttons-wrapper") && document.querySelector(".buttons-wrapper").remove(); //if from title page, remove buttons
-    const top = document.querySelector(".top");
-    top.innerHTML = "";
-    top.append(createActionRowDiv(potatoOne),createActionRowDiv(potatoTwo));
-    resetValues();
 
-    const keystrokeNum = 10; //determines how many keys you want before attacking
-    setKeystrokes(keystrokeNum,potatoOne);
-    setKeystrokes(keystrokeNum,potatoTwo);
-
-    //listen to keydown
-    document.addEventListener("keydown", EventHandlers.onKeydown);
-}
-
-const resetValues = () => {
-    document.querySelector("#damage-points-0").children[1].innerText = 0;
-    document.querySelector("#damage-points-1").children[1].innerText = 0;
-    document.querySelector("#hp-0").innerText = potatoOne.hp;
-    document.querySelector("#hp-1").innerText = potatoTwo.hp;
-}
+//=====================
+// Validate keys
+// Functions used to determine whether key is correct, or missed, or is the last key in the seq.
+//=====================
 
 const validateKey = (potato, input) =>{
     input === potato.activeKey ? setCorrect(potato, potato.keystrokeElementArr) : setMissed(potato, potato.keystrokeElementArr);
-}
-
-const attackOpponent = (attackingPotato, receivingPotato) => {
-    //reduce receiving potato hp
-    console.log("receiving potato ", receivingPotato.id);
-    console.log("attacking potato ", attackingPotato.id);
-    console.log("potato " + receivingPotato.id + " hp: " + receivingPotato.hp);
-    receivingPotato.hp -= attackingPotato.attack;
-    console.log("potato " + receivingPotato.id + " hp: " + receivingPotato.hp);
-    //update hp div
-    const hpElement = document.querySelector("#hp-"+ receivingPotato.id);
-    hpElement.innerText = receivingPotato.hp;
-    //check if receiving potato hp = 0
-    if(receivingPotato.hp <= 0) {
-        console.log("game ends!");
-        gameOverScreen(attackingPotato);
-    }else{
-        //if = 0, end game
-        //else, reset attacking potato attack to 0
-        attackingPotato.attack = 0;
-        document.querySelector(`#damage-points-${attackingPotato.id}`).children[1].innerText = 0; //updates damage box
-        //give attacking potato new key sequence
-        clearKeystrokes(attackingPotato);
-        setKeystrokes(10,attackingPotato);
-    }
 }
 
 const setCorrect = (potato, keystrokeElementArr) => {
@@ -209,16 +263,41 @@ const setMissed = (potato, keystrokeElementArr) => {
     keystrokeElementArr.shift(); 
 }
 
-const clearKeystrokes = (potato) => {
-    const keySequence = document.querySelector("#key-sequence-" + potato.id);
-    keySequence.innerHTML = "";
+const attackOpponent = (attackingPotato, receivingPotato) => {
+    //reduce receiving potato hp
+    console.log("receiving potato ", receivingPotato.id);
+    console.log("attacking potato ", attackingPotato.id);
+    console.log("potato " + receivingPotato.id + " hp: " + receivingPotato.hp);
+    receivingPotato.hp -= attackingPotato.attack;
+    console.log("potato " + receivingPotato.id + " hp: " + receivingPotato.hp);
+    //update hp div
+    const hpElement = document.querySelector("#hp-"+ receivingPotato.id);
+    hpElement.innerText = receivingPotato.hp;
+    //check if receiving potato hp = 0
+    if(receivingPotato.hp <= 0) {
+        console.log("game ends!");
+        gameOverScreen(attackingPotato);
+    }else{
+        //if = 0, end game
+        //else, reset attacking potato attack to 0
+        attackingPotato.attack = 0;
+        document.querySelector(`#damage-points-${attackingPotato.id}`).children[1].innerText = 0; //updates damage box
+        //give attacking potato new key sequence
+        clearKeystrokes(attackingPotato);
+        setKeystrokes(10,attackingPotato);
+    }
 }
+
+//=====================
+// Set keys
+// Functions used to create or clear key sequences.
+//=====================
 
 const setKeystrokes = (keystrokeNum,potato) => {
     const potatoIndex = potato.id;
     const keySequence = document.querySelector("#key-sequence-" + potatoIndex);
     const keystrokeArr = []; 
-    const possibleKeys = [ {keystroke: ["ArrowUp","w"], icon: "img/arrow-up.svg"}, {keystroke: ["ArrowDown","s"], icon: "img/arrow-down.svg"}, {keystroke: ["ArrowLeft","a"], icon: "img/arrow-left.svg"}, {keystroke: ["ArrowRight","d"], icon: "img/arrow-right.svg"} ];
+    const possibleKeys = [ {keystroke: ["ArrowUp","w"], icon: "./img/arrow-up.svg"}, {keystroke: ["ArrowDown","s"], icon: "./img/arrow-down.svg"}, {keystroke: ["ArrowLeft","a"], icon: "./img/arrow-left.svg"}, {keystroke: ["ArrowRight","d"], icon: "./img/arrow-right.svg"} ];
     for(let i = 1 ; i <= keystrokeNum; i++){
         const keystrokeElement = document.createElement("div");
         let selectedKey = possibleKeys[Math.floor(Math.random() * 4)]; //selected key 
@@ -245,6 +324,59 @@ const setKeystrokes = (keystrokeNum,potato) => {
     keystrokeArr.forEach(keystroke => keySequence.appendChild(keystroke));
 }   
 
+const clearKeystrokes = (potato) => {
+    const keySequence = document.querySelector("#key-sequence-" + potato.id);
+    keySequence.innerHTML = "";
+}
+
+
+const resetValues = () => {
+    document.querySelector("#damage-points-0").children[1].innerText = 0;
+    document.querySelector("#damage-points-1").children[1].innerText = 0;
+    document.querySelector("#hp-0").innerText = potatoOne.hp;
+    document.querySelector("#hp-1").innerText = potatoTwo.hp;
+}
+
+//=====================
+// Powerup related functions
+// 
+//=====================
+//create powerup
+const createPowerup = () => { //WIP
+    /* List of powerups
+    1. First aid
+    2. Shield
+    3. Time-warper
+    4. Attack-up
+    */
+    const powerUp = document.createElement("img");
+    const powerUps = [
+        {name: " ",
+        img: " ",
+        description: " "
+        },
+    ];
+    powerUp.setAttribute("src",)
+}
+
+
+//=====================
+// Create HTML elements
+// Functions used to create HTML elements.
+//=====================
+const createDiv = (className, id) => {
+    const div = document.createElement("div");
+    div.classList.add(className);
+    if (id) div.id = id;
+    return div;
+}
+
+const createButton = (className) => {
+    const btn = document.createElement("button");
+    btn.innerText = className;
+    btn.classList.add(className);
+    return btn;
+}
 
 const createPotatoDiv = (potato) => {
     const div = document.createElement("div");
@@ -261,17 +393,10 @@ const createPotatoDiv = (potato) => {
     return div;
 }
 
-const createButton = (className) => {
-    const btn = document.createElement("button");
-    btn.innerText = className;
-    btn.classList.add(className);
-    return btn;
-}
-
 const createActionRowDiv = (potato) => {
-    const actionRowDiv = createDiv("action-row", `action-row-${potato.id}`)
-    const keySequenceDiv = createDiv("key-sequence", `key-sequence-${potato.id}`)
-    const damageDiv = createDiv("damage-points", `damage-points-${potato.id}`)
+    const actionRowDiv = createDiv("action-row", `action-row-${potato.id}`);
+    const keySequenceDiv = createDiv("key-sequence", `key-sequence-${potato.id}`);
+    const damageDiv = createDiv("damage-points", `damage-points-${potato.id}`);
     const damageHeader = document.createElement("p");
     damageHeader.innerText = "Damage"
     const damageText = document.createElement("p");
@@ -279,13 +404,6 @@ const createActionRowDiv = (potato) => {
     damageDiv.append(damageHeader,damageText);
     actionRowDiv.append(keySequenceDiv,damageDiv);
     return actionRowDiv;
-}
-
-const createDiv = (className, id) => {
-    const div = document.createElement("div");
-    div.classList.add(className);
-    div.id = id;
-    return div;
 }
 
 

@@ -94,3 +94,10 @@ button:hover{
 .hidden{
     display: none;
 }
+
+canvas {
+    background: #EEE;
+    display: block;
+    margin: 0 auto;
+    border: solid 6px #444;
+  }
