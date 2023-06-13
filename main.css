@@ -1,10 +1,10 @@
-main{
+.top, .bottom{
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
 
-.play-btn, .help-btn, .settings-btn {
+.play-btn, .help-btn, .settings-btn, .replay-btn {
     display: block;
     background-color: red;
     border-radius: 50%;
@@ -71,19 +71,19 @@ button:hover{
     width: 100%;
 }
 
-.active{
+.keystroke[data-keystroke-status="active"]{
     border: 2px solid blue;
 }
 
-.inactive{
+.keystroke[data-keystroke-status="inactive"]{
     background-color: gainsboro;
 }
 
-.correct{
+.keystroke[data-keystroke-status="correct"]{
     background-color:yellowgreen;
 }
 
-.missed{
+.keystroke[data-keystroke-status="missed"]{
     background-color: pink;
 }
 
@@ -94,3 +94,10 @@ button:hover{
 .hidden{
     display: none;
 }
+
+canvas {
+    background: #EEE;
+    display: block;
+    margin: 0 auto;
+    border: solid 6px #444;
+  }
