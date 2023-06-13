@@ -96,7 +96,7 @@ button:hover{
 }
 
 canvas {
-    background: #EEE;
+    background: pink;
     display: block;
     margin: 0 auto;
     border: solid 6px #444;

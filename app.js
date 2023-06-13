@@ -59,73 +59,41 @@ const Potato = class {
 
 }
 
-// const HealthBar = class {
-//     constructor(x,y,w,h,maxHp){
-//         this._x = x;
-//         this._y = y;
-//         this._w = w;
-//         this._h = h;
-//         this._maxHp = maxHp;
-//         this._maxWidth = w;
-//         this._hp = maxHp;
-//     }
+const HealthBar = class {
+    constructor(x,y,w,h,maxHp){
+        this._x = x;
+        this._y = y;
+        this._w = w;
+        this._h = h;
+        this._maxHp = maxHp;
+        this._maxWidth = w;
+        this._hp = maxHp;
+    }
 
-//     show(context){
-//         context.lineWidth = 4;
-//         context.strokeStyle = "#333";
-//         context.fillStyle = "green";
-//         context.backgroundColor= "pink";
-//         context.fillRect(this._x, this._y, this._maxWidth, this._h);
-//         context.strokeRect(this._x,this._y,thix._maxWidth, this._h);
-//     }
+    show(context){
+        context.lineWidth = 4;
+        context.strokeStyle = "#333";
+        context.fillStyle = "green";
+        context.backgroundColor= "pink";
+        context.fillRect(this._x, this._y, this._maxWidth, this._h);
+        context.strokeRect(this._x,this._y,this._maxWidth, this._h);
+    }
 
-//     updateHealth(hp){
-//         if (hp >= 0 ){
-//             this._health = hp;
-//             this._w = (this.hp/this.maxHp) * this._maxWidth;
-//         }
-//     }
-//     updateDamage(hp){
-//         if (hp >= 0 ){
-//             this._health = hp;
-//             this._w = (this.hp/this.maxHp) * this._maxWidth;
-//         }
-//     }
-// }
+    updateHealth(hp){
+        if (hp >= 0 ){
+            console.log("passing through...");
+            this._health = hp;
+            this._w = (this._hp/this._maxHp) * this._maxWidth;
+        }
+    }
+    updateDamage(hp){
+        if (hp >= 0 ){
+            this._health = hp;
+            this._w = (this.hp/this.maxHp) * this._maxWidth;
+        }
+    }
+}
 
-// const createHp = () => {
-//     console.log("creating Hp bar");
-//     const canvas = document.querySelector("canvas");
-//     const context = canvas.getContext("2d"); //check what is this
-//     canvas.width = 320;
-//     canvas.height = 480;
-//     const width = canvas.width;
-//     const height = canvas.height;
-
-//     canvas.style.marginTop = window.innerHeight / 2 - height / 2 + "px";
-//     let health = 100;
-//     const healthBarWidth = 200;
-//     const healthBarHeight = 30;
-//     const x = width / 2 - healthBarWidth / 2;
-//     const y = height / 2 - healthBarHeight / 2;
-
-//     const healthBar = new HealthBar(x, y, healthBarWidth, healthBarHeight, health, "green");
-
-//     const frame = function() {
-//         context.clearRect(0, 0, width, height);
-//         healthBar.show(context);
-//         requestAnimationFrame(frame);
-//     }
-
-//     canvas.onclick = function() {
-//         health -= 10;
-//         healthBar.updateHealth(health);
-//     };
-
-//     frame();
-// }
-
-// createHp();
 
 let potatoOne = new Potato(0);
 let potatoTwo = new Potato(1);
@@ -386,7 +354,8 @@ const createPotatoDiv = (potato) => {
     img.setAttribute("src","img/potato_knife.svg");
     div.appendChild(img);
     //hp bar
-    const hp = document.createElement("p");
+    const hp = createHpBarElement();
+    //const hp = document.createElement("p");
     hp.id = "hp-" + potato.id;
     hp.innerText = potato.hp
     div.appendChild(hp);
@@ -406,5 +375,39 @@ const createActionRowDiv = (potato) => {
     return actionRowDiv;
 }
 
+const createHpBarElement = () => {
+    console.log("creating Hp bar");
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d"); //check what is this
+    canvas.width = 100;
+    canvas.height = 20;
+    canvas.style.backgroundColor = "pink"
+    const width = canvas.width;
+    const height = canvas.height;
+
+    //return canvas;
+    let health = 100;
+    const healthBarWidth = 200;
+    const healthBarHeight = 30;
+    const x = width / 2 - healthBarWidth / 2;
+    const y = height / 2 - healthBarHeight / 2;
+
+    const healthBar = new HealthBar(x, y, healthBarWidth, healthBarHeight, health);
+
+    const frame = () => {
+        context.clearRect(0, 0, width, height);
+        healthBar.show(context);
+        requestAnimationFrame(frame);
+    }
+
+    canvas.addEventListener("click", () => {
+        health -= 10;
+        console.log("health: " + health);
+        healthBar.updateHealth(health);
+    });
+
+    frame();
+    return canvas;
+}
 
 render();
