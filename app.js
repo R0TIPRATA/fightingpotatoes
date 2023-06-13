@@ -1,8 +1,7 @@
-
 const Potato = class {
     constructor(id){
         this._id = id;
-        this._hp = 100;
+        this._hp = 20;
         this._attack = 0;
         this._keystrokeElementArr = [];
         this._activeKey = "";
@@ -60,15 +59,21 @@ const Potato = class {
 
 }
 
-const potatoOne = new Potato(0);
-const potatoTwo = new Potato(1);
+let potatoOne = new Potato(0);
+let potatoTwo = new Potato(1);
+
+const resetPotatoes = () => {
+    potatoOne = new Potato(0);
+    potatoTwo = new Potato(1);
+}
 
 const render = () => {
     titleScreen();
 }
 
 const titleScreen = () => {
-    const main = document.querySelector("main");
+    const top = document.querySelector(".top");
+    const bottom = document.querySelector(".bottom");
     const titleScreen = document.createElement("div");
     titleScreen.classList.add("titleScreen");
     
@@ -76,12 +81,8 @@ const titleScreen = () => {
     const titleImg = document.createElement("img");
     titleImg.classList.add("title-img");
     titleImg.setAttribute("src", "/img/title.svg");
-
-    //potatoes
-    //const potatoOne = createPotato("potato1");
-    //const potatoTwo = createPotato("potato2");
-    // const potatoOne = new Potato(1);
-    // const potatoTwo = new Potato(2);
+    
+    //make potato divs
     potatoOne.div = createPotatoDiv(potatoOne);
     potatoTwo.div = createPotatoDiv(potatoTwo);
     const potatoesWrapper = document.createElement("div");
@@ -97,25 +98,30 @@ const titleScreen = () => {
     buttonsWrapper.classList.add("buttons-wrapper");
     buttonsWrapper.append(helpBtn,playBtn,settingsBtn);
 
-    main.append(titleImg, potatoesWrapper, buttonsWrapper);
+    //append all elements
+    top.append(titleImg);
+    bottom.append(potatoesWrapper, buttonsWrapper);
 }
 
-const playScreen = () => {
-    //clear just the buttons and the title
-    //potatoes shift to the bottom a bit to make way for keyboard
-    document.querySelector(".title-img").remove();
-    document.querySelector(".buttons-wrapper").remove();
-    const actionArea = document.querySelector(".action-area");
-    actionArea.classList.remove("hidden");
+const gameOverScreen = (winner) =>{
+    document.removeEventListener("keydown",EventHandlers.onKeydown);
+    //clear elements not needed
+    const top = document.querySelector(".top");
+    top.innerHTML = "";
+    //create elements for game over screen
+    const resultsTextElement = document.createElement("h3");
+    const potatoIndex = winner.id + 1;
+    resultsTextElement.innerText = `Potato ${potatoIndex} wins!`;
+    resultsTextElement.classList.add("winning-text");
+    const replayBtn = createButton("replay-btn");
+    replayBtn.addEventListener("click", playScreen);
+    top.append(resultsTextElement,replayBtn);
+    //reset potato stats
+    resetPotatoes();
+}    
 
-    const keystrokeNum = 10;
-    setKeystrokes(10,potatoOne);
-    setKeystrokes(10,potatoTwo);
-
-    //listen to keydown
-    document.addEventListener("keydown", (event) => {
-        //TO DO: check for both potatoes keys
-        //both potatoes have active keys. Only check if keys are a,w,s,d,space or up,down,left,right,enter 
+const EventHandlers = {
+    onKeydown: (event) => {
         const potatoOneKeys = {actionKeys: ["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"], finalKey: "Enter"};
         const potatoTwoKeys = {actionKeys: ["w","a","s","d"], finalKey: " "};
         const input = event.key;
@@ -124,23 +130,50 @@ const playScreen = () => {
         if (potatoTwo.keystrokeElementArr.length > 1 && potatoTwoKeys.actionKeys.includes(input)) { validateKey(potatoTwo, input); }
         if (potatoOne.keystrokeElementArr.length === 1 && potatoOneKeys.finalKey === input){attackOpponent(potatoOne,potatoTwo)}; //potato 1 attacks potato 2
         if (potatoTwo.keystrokeElementArr.length === 1 && potatoTwoKeys.finalKey === input){attackOpponent(potatoTwo,potatoOne)};
-    });
-
-    const validateKey = (potato, input) =>{
-        input === potato.activeKey ? setCorrect(potato, potato.keystrokeElementArr) : setMissed(potato, potato.keystrokeElementArr);
     }
-    
-    const attackOpponent = (attackingPotato, receivingPotato) => {
-        //reduce receiving potato hp
-        console.log("receiving potato ", receivingPotato.id);
-        console.log("attacking potato ", attackingPotato.id);
-        console.log("potato " + receivingPotato.id + " hp: " + receivingPotato.hp);
-        receivingPotato.hp -= attackingPotato.attack;
-        console.log("potato " + receivingPotato.id + " hp: " + receivingPotato.hp);
-        //update hp div
-        const hpElement = document.getElementById("hp-"+ receivingPotato.id);
-        hpElement.innerText = receivingPotato.hp;
-        //check if receiving potato hp = 0
+}
+
+const playScreen = () => {
+    document.querySelector(".buttons-wrapper") && document.querySelector(".buttons-wrapper").remove(); //if from title page, remove buttons
+    const top = document.querySelector(".top");
+    top.innerHTML = "";
+    top.append(createActionRowDiv(potatoOne),createActionRowDiv(potatoTwo));
+    resetValues();
+
+    const keystrokeNum = 10; //determines how many keys you want before attacking
+    setKeystrokes(keystrokeNum,potatoOne);
+    setKeystrokes(keystrokeNum,potatoTwo);
+
+    //listen to keydown
+    document.addEventListener("keydown", EventHandlers.onKeydown);
+}
+
+const resetValues = () => {
+    document.querySelector("#damage-points-0").children[1].innerText = 0;
+    document.querySelector("#damage-points-1").children[1].innerText = 0;
+    document.querySelector("#hp-0").innerText = potatoOne.hp;
+    document.querySelector("#hp-1").innerText = potatoTwo.hp;
+}
+
+const validateKey = (potato, input) =>{
+    input === potato.activeKey ? setCorrect(potato, potato.keystrokeElementArr) : setMissed(potato, potato.keystrokeElementArr);
+}
+
+const attackOpponent = (attackingPotato, receivingPotato) => {
+    //reduce receiving potato hp
+    console.log("receiving potato ", receivingPotato.id);
+    console.log("attacking potato ", attackingPotato.id);
+    console.log("potato " + receivingPotato.id + " hp: " + receivingPotato.hp);
+    receivingPotato.hp -= attackingPotato.attack;
+    console.log("potato " + receivingPotato.id + " hp: " + receivingPotato.hp);
+    //update hp div
+    const hpElement = document.querySelector("#hp-"+ receivingPotato.id);
+    hpElement.innerText = receivingPotato.hp;
+    //check if receiving potato hp = 0
+    if(receivingPotato.hp <= 0) {
+        console.log("game ends!");
+        gameOverScreen(attackingPotato);
+    }else{
         //if = 0, end game
         //else, reset attacking potato attack to 0
         attackingPotato.attack = 0;
@@ -149,32 +182,31 @@ const playScreen = () => {
         clearKeystrokes(attackingPotato);
         setKeystrokes(10,attackingPotato);
     }
+}
 
-    const setCorrect = (potato, keystrokeElementArr) => {
-        const currentKeystroke = keystrokeElementArr[0];
-        currentKeystroke.dataset.keystrokeStatus = "correct";
-        potato.attack += 2;
-        document.querySelector(`#damage-points-${potato.id}`).children[1].innerText = potato.attack; //updates damage box
-        const nextKeystroke = keystrokeElementArr[1];
-        console.log("next keystroke ", nextKeystroke);
-        potato.activeKey = nextKeystroke.dataset.keystroke;
-        console.log("new active key: " + potato.activeKey);
-        nextKeystroke.dataset.keystrokeStatus = "active";
-        potato.keystrokeElementArr.shift();
-    }
-    
-    const setMissed = (potato, keystrokeElementArr) => {
-        const currentKeystroke = keystrokeElementArr[0];
-        currentKeystroke.dataset.keystrokeStatus = "missed";
-        potato.keystrokeElementArr = keystrokeElementArr;
-        //move on to the next key
-        const nextKeystroke = keystrokeElementArr[1];
-        potato.activeKey = nextKeystroke.dataset.keystroke;
-        console.log("new active key: " + potato.activeKey);
-        nextKeystroke.dataset.keystrokeStatus = "active";
-        keystrokeElementArr.shift(); 
-    }
+const setCorrect = (potato, keystrokeElementArr) => {
+    const currentKeystroke = keystrokeElementArr[0];
+    currentKeystroke.dataset.keystrokeStatus = "correct";
+    potato.attack += 2;
+    document.querySelector(`#damage-points-${potato.id}`).children[1].innerText = potato.attack; //updates damage box
+    const nextKeystroke = keystrokeElementArr[1];
+    console.log("next keystroke ", nextKeystroke);
+    potato.activeKey = nextKeystroke.dataset.keystroke;
+    console.log("new active key: " + potato.activeKey);
+    nextKeystroke.dataset.keystrokeStatus = "active";
+    potato.keystrokeElementArr.shift();
+}
 
+const setMissed = (potato, keystrokeElementArr) => {
+    const currentKeystroke = keystrokeElementArr[0];
+    currentKeystroke.dataset.keystrokeStatus = "missed";
+    potato.keystrokeElementArr = keystrokeElementArr;
+    //move on to the next key
+    const nextKeystroke = keystrokeElementArr[1];
+    potato.activeKey = nextKeystroke.dataset.keystroke;
+    console.log("new active key: " + potato.activeKey);
+    nextKeystroke.dataset.keystrokeStatus = "active";
+    keystrokeElementArr.shift(); 
 }
 
 const clearKeystrokes = (potato) => {
@@ -234,6 +266,26 @@ const createButton = (className) => {
     btn.innerText = className;
     btn.classList.add(className);
     return btn;
+}
+
+const createActionRowDiv = (potato) => {
+    const actionRowDiv = createDiv("action-row", `action-row-${potato.id}`)
+    const keySequenceDiv = createDiv("key-sequence", `key-sequence-${potato.id}`)
+    const damageDiv = createDiv("damage-points", `damage-points-${potato.id}`)
+    const damageHeader = document.createElement("p");
+    damageHeader.innerText = "Damage"
+    const damageText = document.createElement("p");
+    damageText.innerText = potato.hp;
+    damageDiv.append(damageHeader,damageText);
+    actionRowDiv.append(keySequenceDiv,damageDiv);
+    return actionRowDiv;
+}
+
+const createDiv = (className, id) => {
+    const div = document.createElement("div");
+    div.classList.add(className);
+    div.id = id;
+    return div;
 }
 
 
