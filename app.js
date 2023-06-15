@@ -1,7 +1,12 @@
+//settings
+const attackPower = 1; //damage taken per attack
+const keystrokeNum = 10; //determines how many keys you want before attacking
+
 const Potato = class {
     constructor(id){
         this._id = id;
-        this._hp = 20;
+        this._maxHp = 20;
+        this._hp = this._maxHp;
         this._attack = 0;
         this._keystrokeElementArr = [];
         this._activeKey = "";
@@ -20,6 +25,13 @@ const Potato = class {
     }
     get hp(){
         return this._hp;
+    }
+
+    set maxHp(maxHp){
+        this._maxHp = maxHp;
+    }
+    get maxHp(){
+        return this._maxHp;
     }
 
     set attack(attack){
@@ -57,6 +69,13 @@ const Potato = class {
         return this._div;
     }
 
+    set healthBar(healthBar){
+        this._healthBar = healthBar;
+    }
+    get healthBar(){
+        return this._healthBar;
+    }
+
 }
 
 const HealthBar = class {
@@ -74,23 +93,14 @@ const HealthBar = class {
         context.lineWidth = 4;
         context.strokeStyle = "#333";
         context.fillStyle = "green";
-        context.backgroundColor= "pink";
-        context.fillRect(this._x, this._y, this._maxWidth, this._h);
+        context.fillRect(this._x, this._y, this._w, this._h);
         context.strokeRect(this._x,this._y,this._maxWidth, this._h);
     }
 
     updateHealth(hp){
-        if (hp >= 0 ){
-            console.log("passing through...");
-            this._health = hp;
-            this._w = (this._hp/this._maxHp) * this._maxWidth;
-        }
-    }
-    updateDamage(hp){
-        if (hp >= 0 ){
-            this._health = hp;
-            this._w = (this.hp/this.maxHp) * this._maxWidth;
-        }
+        if (hp < 0){hp = 0}
+        this._health = hp;
+        this._w = (hp/this._maxHp) * this._maxWidth;
     }
 }
 
@@ -98,9 +108,9 @@ const HealthBar = class {
 let potatoOne = new Potato(0);
 let potatoTwo = new Potato(1);
 
-const resetPotatoes = () => {
-    potatoOne = new Potato(0);
-    potatoTwo = new Potato(1);
+const resetValues = (potato) => {
+    potato.hp = potato.maxHp;
+    potato.healthBar.updateHealth(potato.maxHp);
 }
 
 const render = () => {
@@ -152,7 +162,6 @@ const playScreen = () => {
     top.innerHTML = "";
     top.append(createActionRowDiv(potatoOne),createActionRowDiv(potatoTwo));
 
-    const keystrokeNum = 10; //determines how many keys you want before attacking
     setKeystrokes(keystrokeNum,potatoOne);
     setKeystrokes(keystrokeNum,potatoTwo);
     //resetValues();
@@ -174,7 +183,9 @@ const gameOverScreen = (winner) =>{
     replayBtn.addEventListener("click", playScreen);
     top.append(resultsTextElement,replayBtn);
     //reset potato stats
-    resetPotatoes();
+    //resetPotatoes();
+    resetValues(potatoOne);
+    resetValues(potatoTwo);
 }    
 
 
@@ -209,7 +220,7 @@ const validateKey = (potato, input) =>{
 const setCorrect = (potato, keystrokeElementArr) => {
     const currentKeystroke = keystrokeElementArr[0];
     currentKeystroke.dataset.keystrokeStatus = "correct";
-    potato.attack += 2;
+    potato.attack += attackPower;
     document.querySelector(`#damage-points-${potato.id}`).children[1].innerText = potato.attack; //updates damage box
     const nextKeystroke = keystrokeElementArr[1];
     console.log("next keystroke ", nextKeystroke);
@@ -233,24 +244,18 @@ const setMissed = (potato, keystrokeElementArr) => {
 
 const attackOpponent = (attackingPotato, receivingPotato) => {
     //reduce receiving potato hp
-    console.log("receiving potato ", receivingPotato.id);
-    console.log("attacking potato ", attackingPotato.id);
-    console.log("potato " + receivingPotato.id + " hp: " + receivingPotato.hp);
+    //console.log("receiving potato ", receivingPotato.id);
+    //console.log("attacking potato ", attackingPotato.id);
+    //console.log("potato " + receivingPotato.id + " hp: " + receivingPotato.hp);
+    attackingPotato.attack += attackPower; //the last attack
+    //reduce hp in healthBar
     receivingPotato.hp -= attackingPotato.attack;
-    console.log("potato " + receivingPotato.id + " hp: " + receivingPotato.hp);
-    //update hp div
-    const hpElement = document.querySelector("#hp-"+ receivingPotato.id);
-    hpElement.innerText = receivingPotato.hp;
-    //check if receiving potato hp = 0
+    receivingPotato.healthBar.updateHealth(receivingPotato.hp);
+    attackingPotato.attack = 0; //set to 0 again for next sequence
     if(receivingPotato.hp <= 0) {
-        console.log("game ends!");
+        //console.log("game ends!");
         gameOverScreen(attackingPotato);
     }else{
-        //if = 0, end game
-        //else, reset attacking potato attack to 0
-        attackingPotato.attack = 0;
-        document.querySelector(`#damage-points-${attackingPotato.id}`).children[1].innerText = 0; //updates damage box
-        //give attacking potato new key sequence
         clearKeystrokes(attackingPotato);
         setKeystrokes(10,attackingPotato);
     }
@@ -298,12 +303,12 @@ const clearKeystrokes = (potato) => {
 }
 
 
-const resetValues = () => {
-    document.querySelector("#damage-points-0").children[1].innerText = 0;
-    document.querySelector("#damage-points-1").children[1].innerText = 0;
-    document.querySelector("#hp-0").innerText = potatoOne.hp;
-    document.querySelector("#hp-1").innerText = potatoTwo.hp;
-}
+// const resetValues = () => {
+//     document.querySelector("#damage-points-0").children[1].innerText = 0;
+//     document.querySelector("#damage-points-1").children[1].innerText = 0;
+//     document.querySelector("#hp-0").innerText = potatoOne.hp;
+//     document.querySelector("#hp-1").innerText = potatoTwo.hp;
+// }
 
 //=====================
 // Powerup related functions
@@ -353,12 +358,34 @@ const createPotatoDiv = (potato) => {
     const img = document.createElement("img");
     img.setAttribute("src","img/potato_knife.svg");
     div.appendChild(img);
-    //hp bar
-    const hp = createHpBarElement();
-    //const hp = document.createElement("p");
-    hp.id = "hp-" + potato.id;
-    hp.innerText = potato.hp
-    div.appendChild(hp);
+    //create hp bar
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    canvas.id = "health-bar-" + potato.id;
+    canvas.width = 100;
+    canvas.height = 20;
+    canvas.style.backgroundColor = "pink"
+    const width = canvas.width;
+    const height = canvas.height;
+    let health = potato.hp;
+    const healthBarWidth = canvas.width;
+    const healthBarHeight = canvas.height;
+    const x = 0;
+    const y = 0;
+
+    const healthBar = new HealthBar(x, y, healthBarWidth, healthBarHeight, health);
+    potato.healthBar = healthBar;
+
+    const frame = () => {
+        context.clearRect(0, 0, width, height);
+        healthBar.show(context);
+        requestAnimationFrame(frame);
+    }
+
+    frame();
+    //end create hp bar
+
+    div.appendChild(canvas);
     return div;
 }
 
@@ -369,45 +396,14 @@ const createActionRowDiv = (potato) => {
     const damageHeader = document.createElement("p");
     damageHeader.innerText = "Damage"
     const damageText = document.createElement("p");
-    damageText.innerText = potato.hp;
+    damageText.innerText = potato.attack;
     damageDiv.append(damageHeader,damageText);
     actionRowDiv.append(keySequenceDiv,damageDiv);
     return actionRowDiv;
 }
 
-const createHpBarElement = () => {
-    console.log("creating Hp bar");
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d"); //check what is this
-    canvas.width = 100;
-    canvas.height = 20;
-    canvas.style.backgroundColor = "pink"
-    const width = canvas.width;
-    const height = canvas.height;
+/*
+RESOURCES:
+1. Building Healthbar: https://www.youtube.com/watch?v=Wh2kVSPi_sE&t=454s
 
-    //return canvas;
-    let health = 100;
-    const healthBarWidth = 200;
-    const healthBarHeight = 30;
-    const x = width / 2 - healthBarWidth / 2;
-    const y = height / 2 - healthBarHeight / 2;
-
-    const healthBar = new HealthBar(x, y, healthBarWidth, healthBarHeight, health);
-
-    const frame = () => {
-        context.clearRect(0, 0, width, height);
-        healthBar.show(context);
-        requestAnimationFrame(frame);
-    }
-
-    canvas.addEventListener("click", () => {
-        health -= 10;
-        console.log("health: " + health);
-        healthBar.updateHealth(health);
-    });
-
-    frame();
-    return canvas;
-}
-
-render();
+*/
