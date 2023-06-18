@@ -1,19 +1,22 @@
+
 //settings
 const attackPower = 1; //damage taken per attack
 const keystrokeNum = 10; //determines how many keys you want before attacking
+const powerUpDurationLowerRange = 30;
+const powerUpDurationUpperRange = 60; //power up will appear every 30 - 60 s
 
 const Potato = class {
     constructor(id){
-        this._id = id;
-        this._maxHp = 20;
-        this._hp = this._maxHp;
-        this._attack = 0;
-        this._keystrokeElementArr = [];
-        this._activeKey = "";
-        this._div= "";
+        this.id = id;
+        this.maxHp = 20;
+        this.hp = this.maxHp;
+        this.attack = 0;
+        this.keystrokeElementArr = [];
+        this.activeKey = "";
+        this.div= "";
     }
 
-    set id(id){
+    set id(id){ 
         this._id = id;
     }
     get id(){
@@ -53,13 +56,6 @@ const Potato = class {
     }
     get activeKey(){
         return this._activeKey;
-    }
-
-    set id(id){
-        this._id = id;
-    }
-    get id(){
-        return this._id;
     }
 
     set div(div){
@@ -106,6 +102,7 @@ const HealthBar = class {
 
 
 let potatoOne = new Potato(0);
+console.log("potato one object: ", JSON.stringify(potatoOne));
 let potatoTwo = new Potato(1);
 
 const resetValues = (potato) => {
@@ -140,7 +137,7 @@ const titleScreen = () => {
     potatoTwo.div = createPotatoDiv(potatoTwo);
     const potatoesWrapper = document.createElement("div");
     potatoesWrapper.classList.add("potatoes-wrapper");
-    potatoesWrapper.append(potatoOne.div,potatoTwo.div);
+    potatoesWrapper.append(potatoOne.div, potatoTwo.div);
 
     // add buttons
     const playBtn = createButton("play-btn");
@@ -167,6 +164,9 @@ const playScreen = () => {
     //resetValues();
     //listen to keydown
     document.addEventListener("keydown", EventHandlers.onKeydown);
+
+    //include powerup
+    powerUpAppears();
 }
 
 const gameOverScreen = (winner) =>{
@@ -196,6 +196,7 @@ const gameOverScreen = (winner) =>{
 
 const EventHandlers = {
     onKeydown: (event) => {
+        event.preventDefault(); //prevent space bar scrolling
         const potatoOneKeys = {actionKeys: ["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"], finalKey: "Enter"};
         const potatoTwoKeys = {actionKeys: ["w","a","s","d"], finalKey: " "};
         const input = event.key;
@@ -315,6 +316,96 @@ const clearKeystrokes = (potato) => {
 // 
 //=====================
 //create powerup
+//powerup appears randomly, and can only appear one at a time
+
+const Powerup = class {
+    constructor(){
+        this.id = "",
+        this.name = "",
+        this.img = ""
+    }
+}
+
+//get when powerup appears
+const powerUpAppears = () =>{
+    let seconds = 0;
+    let randDelay = (Math.floor(Math.random() * powerUpDurationUpperRange) - powerUpDurationLowerRange) * 1000; 
+    powerUpImgSrc = "./img/arrow-down.svg";
+    const powerup = createImg("powerup", powerUpImgSrc);
+
+    const container = document.querySelector(".powerupbg");
+    container.appendChild(powerup);
+    document.querySelector('.bottom').appendChild(container);
+
+    const top_height = document.querySelector(".top").offsetHeight;
+
+    let x_incr = 1;
+    let y_incr = 3;
+    init();
+    
+    //var interval = setInterval(function() {
+        //create powerup element
+        // container.appendChild(powerup);
+
+        // powerup.style.position = 'absolute';
+        // setInterval(frame, 5) //run frame every 5s
+        //determine how long element will stay in view
+        //    
+    //}, randDelay);
+
+    function init() {
+        update_color();
+        powerup.style.position = 'absolute';
+        //document.body.style.background = '#4d4d4d';
+        setInterval(frame2, 5); //run frame every 5 ms
+    }
+
+    function update_color() {
+        const colors = ["#ff9933","#4700b3"]; 
+        const random = Math.floor((Math.random() * 2));
+        let color = colors[random];
+        console.log(color);
+        //powerup.style.fill = `hsl(${color},100%,50%)`;
+        powerup.style.borderColor = color;
+    }
+
+    function handle_collision() {
+        console.log("powerup properties: ", powerup.offsetHeight, powerup.offsetWidth,powerup.offsetLeft, powerup.offsetTop);
+        let powerup_height = powerup.offsetHeight; 
+        //offsetHeight returns the height of an element, including vertical padding and borders, as an integer
+        let powerup_width = powerup.offsetWidth;
+        let left = powerup.offsetLeft; 
+        //returns the number of pixels that the upper left corner of the current element is offset to the left within the HTMLElement.offsetParent node.
+        let top = powerup.offsetTop - top_height;
+        //console.log(left);
+        let win_height = container.offsetHeight; //window.innerHeight;
+        let win_width = container.offsetWidth//window.innerWidth;
+        console.log("window properties: ", win_height,win_width);
+
+        if (left <= 0 || left + powerup_width >= win_width) { //if doesnt got out of bound on left or on the right
+          x_incr = ~x_incr + 1;
+          //x_incr += x_incr;
+          update_color();
+        }
+        if (top <= 0 || top + powerup_height >= win_height) { //if doesnt got out of bound on bottom or on the top
+          y_incr = ~y_incr + 1;
+          //console.log("test2" + y_incr);
+          //y_incr += 1;
+          update_color();
+        }
+      }
+
+    function frame2() {
+        handle_collision();
+        //top height
+        //let top_height = document.querySelector(".top").offsetHeight;
+        powerup.style.top = powerup.offsetTop + y_incr + "px";
+        powerup.style.left = powerup.offsetLeft + x_incr + "px";
+        console.log("x", powerup.offsetTop);
+        console.log("y", powerup.offsetLeft)
+    }
+}
+
 const createPowerup = () => { //WIP
     /* List of powerups
     1. First aid
@@ -324,9 +415,21 @@ const createPowerup = () => { //WIP
     */
     const powerUp = document.createElement("img");
     const powerUps = [
-        {name: " ",
+        {name: "First Aid",
         img: " ",
-        description: " "
+        description: "Increases HP by a random amount between 20 - 80.",
+        },
+        {name: "Shield",
+        img: " ",
+        description: "Reduce damage of opposing player’s next attack by 20%."
+        },
+        {name: "Time-warper",
+        img: " ",
+        description: "Delays opposing player’s moves for 5s."
+        },
+        {name: "Attackup",
+        img: " ",
+        description: "Increase damage of next attack by 10%."
         },
     ];
     powerUp.setAttribute("src",)
@@ -342,6 +445,14 @@ const createDiv = (className, id) => {
     div.classList.add(className);
     if (id) div.id = id;
     return div;
+}
+
+const createImg = (className, src, id) => {
+    const img = document.createElement("img");
+    img.classList.add(className);
+    if (src) img.setAttribute("src",src);
+    if (id) img.id = id;
+    return img;
 }
 
 const createButton = (className) => {
@@ -396,14 +507,23 @@ const createActionRowDiv = (potato) => {
     const damageHeader = document.createElement("p");
     damageHeader.innerText = "Damage"
     const damageText = document.createElement("p");
-    damageText.innerText = potato.attack;
+    damageText.innerText = potato.attack;``
     damageDiv.append(damageHeader,damageText);
     actionRowDiv.append(keySequenceDiv,damageDiv);
     return actionRowDiv;
 }
 
+render();
 /*
 RESOURCES:
 1. Building Healthbar: https://www.youtube.com/watch?v=Wh2kVSPi_sE&t=454s
+
+*/
+
+/*TASKS FOR TOMORROW:
+
+- 1. CHANGE ATTRIBUTES IN OBJECTS. REMOVE _ CHARACTER (done)
+- 2. INCLUDE POWERUP BOUNCING ELEMENT
+- 3. REORGANIZE CODE
 
 */
