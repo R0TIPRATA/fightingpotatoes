@@ -2,18 +2,104 @@
 //settings
 const attackPower = 1; //damage taken per attack
 const keystrokeNum = 10; //determines how many keys you want before attacking
-const powerUpDurationLowerRange = 30;
-const powerUpDurationUpperRange = 60; //power up will appear every 30 - 60 s
+const powerUpDurationLowerRange = 1;
+const powerUpDurationUpperRange = 5; //power up will appear every 30 - 60 s
+let hasPowerup = false;
+let latestPowerup = "";
+const colorOne = "#ff9933"; //to refactor
+const colorTwo = "#4700b3" //to refactor
+let potatoPowerupTarget = "";
+
+//=====================
+// Create HTML elements
+// Functions used to create HTML elements.
+//=====================
+const createDiv = (className, id) => {
+    const div = document.createElement("div");
+    div.classList.add(className);
+    if (id) div.id = id;
+    return div;
+}
+
+const createImg = (className, src, id) => {
+    const img = document.createElement("img");
+    img.classList.add(className);
+    if (src) img.setAttribute("src",src);
+    if (id) img.id = id;
+    return img;
+}
+
+const createButton = (className) => {
+    const btn = document.createElement("button");
+    btn.innerText = className;
+    btn.classList.add(className);
+    return btn;
+}
+
+const createPotatoDiv = (potato) => {
+    const div = document.createElement("div");
+    div.classList.add("potato");
+    div.id = "potato-" + potato.id;
+    const img = document.createElement("img");
+    img.setAttribute("src","img/potato_knife.svg");
+    div.appendChild(img);
+    //create hp bar
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    canvas.id = "health-bar-" + potato.id;
+    canvas.width = 100;
+    canvas.height = 20;
+    canvas.style.backgroundColor = "pink"
+    const width = canvas.width;
+    const height = canvas.height;
+    let health = potato.hp;
+    const healthBarWidth = canvas.width;
+    const healthBarHeight = canvas.height;
+    const x = 0;
+    const y = 0;
+
+    const healthBar = new HealthBar(x, y, healthBarWidth, healthBarHeight, health);
+    potato.healthBar = healthBar;
+
+    const frame = () => {
+        context.clearRect(0, 0, width, height);
+        healthBar.show(context);
+        requestAnimationFrame(frame);
+    }
+
+    frame();
+    //end create hp bar
+
+    div.appendChild(canvas);
+    return div;
+}
+
+const createActionRowDiv = (potato) => {
+    const actionRowDiv = createDiv("action-row", `action-row-${potato.id}`);
+    const keySequenceDiv = createDiv("key-sequence", `key-sequence-${potato.id}`);
+    const damageDiv = createDiv("damage-points", `damage-points-${potato.id}`);
+    const damageHeader = document.createElement("p");
+    damageHeader.innerText = "Damage"
+    const damageText = document.createElement("p");
+    damageText.innerText = potato.attack;
+    damageDiv.append(damageHeader,damageText);
+    actionRowDiv.append(keySequenceDiv,damageDiv);
+    return actionRowDiv;
+}
 
 const Potato = class {
-    constructor(id){
+    constructor(id,color){
         this.id = id;
+        this.color = color;
         this.maxHp = 20;
         this.hp = this.maxHp;
         this.attack = 0;
         this.keystrokeElementArr = [];
         this.activeKey = "";
         this.div= "";
+        this.powerup = ""; 
+        this.powerupDiv = createDiv("potato-powerup","potato-powerup-" + this.id);
+        this.healthBar = "";
     }
 
     set id(id){ 
@@ -21,6 +107,13 @@ const Potato = class {
     }
     get id(){
         return this._id;
+    }
+
+    set color(color){ 
+        this._color = color;
+    }
+    get color(){
+        return this._color;
     }
 
     set hp(hp){
@@ -65,6 +158,20 @@ const Potato = class {
         return this._div;
     }
 
+    set powerup(powerup){
+        this._powerup = powerup;
+    }
+    get powerup(){
+        return this._powerup;
+    }
+
+    set powerupDiv(powerupDiv){
+        this._powerupDiv = powerupDiv;
+    }
+    get powerupDiv(){
+        return this._powerupDiv;
+    }
+
     set healthBar(healthBar){
         this._healthBar = healthBar;
     }
@@ -72,38 +179,47 @@ const Potato = class {
         return this._healthBar;
     }
 
+    usePowerup(){
+        if(this.powerup.length <= 0){
+            return;
+        }else{
+            this.powerup.func(this);
+        }
+        this.powerupDiv.remove();
+    }
+
 }
 
 const HealthBar = class {
     constructor(x,y,w,h,maxHp){
-        this._x = x;
-        this._y = y;
-        this._w = w;
-        this._h = h;
-        this._maxHp = maxHp;
-        this._maxWidth = w;
-        this._hp = maxHp;
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.maxHp = maxHp;
+        this.maxWidth = w;
+        this.hp = maxHp;
     }
 
     show(context){
         context.lineWidth = 4;
         context.strokeStyle = "#333";
         context.fillStyle = "green";
-        context.fillRect(this._x, this._y, this._w, this._h);
-        context.strokeRect(this._x,this._y,this._maxWidth, this._h);
+        context.fillRect(this.x, this.y, this.w, this.h);
+        context.strokeRect(this.x,this.y,this.maxWidth, this.h);
     }
 
     updateHealth(hp){
         if (hp < 0){hp = 0}
-        this._health = hp;
-        this._w = (hp/this._maxHp) * this._maxWidth;
+        this.health = hp;
+        this.w = (hp/this.maxHp) * this.maxWidth;
     }
 }
 
 
-let potatoOne = new Potato(0);
-console.log("potato one object: ", JSON.stringify(potatoOne));
-let potatoTwo = new Potato(1);
+let potatoOne = new Potato(0,colorOne);
+let potatoTwo = new Potato(1,colorTwo);
+const potatoes = [potatoOne, potatoTwo]; //used for powerup functions
 
 const resetValues = (potato) => {
     potato.hp = potato.maxHp;
@@ -161,12 +277,12 @@ const playScreen = () => {
 
     setKeystrokes(keystrokeNum,potatoOne);
     setKeystrokes(keystrokeNum,potatoTwo);
-    //resetValues();
+
     //listen to keydown
     document.addEventListener("keydown", EventHandlers.onKeydown);
 
     //include powerup
-    powerUpAppears();
+    initPowerup();
 }
 
 const gameOverScreen = (winner) =>{
@@ -174,6 +290,7 @@ const gameOverScreen = (winner) =>{
     //clear elements not needed
     const top = document.querySelector(".top");
     top.innerHTML = "";
+    document.querySelector(".powerupbg").innerHTML="";
     //create elements for game over screen
     const resultsTextElement = document.createElement("h3");
     const potatoIndex = winner.id + 1;
@@ -197,15 +314,54 @@ const gameOverScreen = (winner) =>{
 const EventHandlers = {
     onKeydown: (event) => {
         event.preventDefault(); //prevent space bar scrolling
-        const potatoOneKeys = {actionKeys: ["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"], finalKey: "Enter"};
-        const potatoTwoKeys = {actionKeys: ["w","a","s","d"], finalKey: " "};
+        const potatoOneKeys = {actionKeys: ["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"], finalKey: "Enter", powerupKey: "/"};
+        const potatoTwoKeys = {actionKeys: ["w","a","s","d"], finalKey: " ", powerupKey:"c"};
         const input = event.key;
         console.log(input);
         if (potatoOne.keystrokeElementArr.length > 1 && potatoOneKeys.actionKeys.includes(input)) { validateKey(potatoOne, input); } //if keys are arrows, or enter
         if (potatoTwo.keystrokeElementArr.length > 1 && potatoTwoKeys.actionKeys.includes(input)) { validateKey(potatoTwo, input); }
         if (potatoOne.keystrokeElementArr.length === 1 && potatoOneKeys.finalKey === input){attackOpponent(potatoOne,potatoTwo)}; //potato 1 attacks potato 2
         if (potatoTwo.keystrokeElementArr.length === 1 && potatoTwoKeys.finalKey === input){attackOpponent(potatoTwo,potatoOne)};
-    }
+        
+        const powerupKey = "h";
+        if(hasPowerup && input === powerupKey ){
+            console.log(potatoPowerupTarget.id + "got the powerup!"); //success! correct potato shown
+            //store powerup in potato powerup
+            //BUG: Instead of using potatoPowerupTarget, use potatoOne or potatoTwo object instead
+            //How? I am not sure myslef >.<
+
+            
+            potatoPowerupTarget.powerup = latestPowerup;
+            //console.log( "potato-" + potatoPowerupTarget.id + " got " + potatoPowerupTarget.powerup.name);
+            //display powerup
+            potatoPowerupTarget.powerupDiv.innerHTML= "";
+            const potatoPowerupDiv = potatoPowerupTarget.powerupDiv;
+            const potatoPowerupImg = createImg("potato-powerup-img", latestPowerup.imgSrc);
+            console.log("img", potatoPowerupImg)
+            //potatoPowerupImg.style.width = "20px";
+            const potatoDiv = document.querySelector("#potato-" + potatoPowerupTarget.id );
+            potatoDiv.appendChild(potatoPowerupDiv);
+            potatoPowerupDiv.append(potatoPowerupImg);
+            //remove powerup from container
+            document.querySelector(".powerup").remove();
+            latestPowerup = "";
+            //after storing in potato, reinitiate powerup
+            initPowerup();
+            hasPowerup = false;  
+        }
+
+        if(potatoOneKeys.powerupKey === input ){potatoOne.usePowerup();}
+        if(potatoTwoKeys.powerupKey === input ){potatoTwo.usePowerup();}   
+        //bug: powerups get mixed up between the potatoes ):
+
+    },
+    // onKeydownPowerup: (event) => {
+    //     const input = event.key;
+    //     const powerupKey = "h";
+    //     if(input === powerupKey ){
+    //         console.log(potatoPowerupTarget.id + "got the powerup!");
+    //     }
+    // }
 }
 
 
@@ -245,10 +401,23 @@ const setMissed = (potato, keystrokeElementArr) => {
 
 const attackOpponent = (attackingPotato, receivingPotato) => {
     //reduce receiving potato hp
-    //console.log("receiving potato ", receivingPotato.id);
-    //console.log("attacking potato ", attackingPotato.id);
-    //console.log("potato " + receivingPotato.id + " hp: " + receivingPotato.hp);
     attackingPotato.attack += attackPower; //the last attack
+    
+    //check if got attackup powerup, increase final attack by 10%
+    console.log("attacking potato:" + attackingPotato.id);
+    console.log("attacking potato powerup:" + JSON.stringify(attackingPotato.powerup)); //bug:this aint showing
+
+    console.log("receiving potato:" + receivingPotato.id);
+    console.log("receiving potato powerup:" + receivingPotato.powerup.activated);
+    if(attackingPotato.powerup.activated ==="Attack Up"){
+        attackingPotato.attack = (attackingPotato.attack/100) * 120;
+        console.log("attack! :" + attackingPotato.attack);
+    }
+    if(receivingPotato.powerup.activated ==="Shield"){
+        attackingPotato.attack = (attackingPotato.attack/100) * 80;
+        console.log("attack! :" + attackingPotato.attack);
+    }
+
     //reduce hp in healthBar
     receivingPotato.hp -= attackingPotato.attack;
     receivingPotato.healthBar.updateHealth(receivingPotato.hp);
@@ -319,198 +488,214 @@ const clearKeystrokes = (potato) => {
 //powerup appears randomly, and can only appear one at a time
 
 const Powerup = class {
-    constructor(){
-        this.id = "",
-        this.name = "",
-        this.img = ""
-    }
-}
-
-//get when powerup appears
-const powerUpAppears = () =>{
-    let seconds = 0;
-    let randDelay = (Math.floor(Math.random() * powerUpDurationUpperRange) - powerUpDurationLowerRange) * 1000; 
-    powerUpImgSrc = "./img/arrow-down.svg";
-    const powerup = createImg("powerup", powerUpImgSrc);
-
-    const container = document.querySelector(".powerupbg");
-    container.appendChild(powerup);
-    document.querySelector('.bottom').appendChild(container);
-
-    const top_height = document.querySelector(".top").offsetHeight;
-
-    let x_incr = 1;
-    let y_incr = 3;
-    init();
-    
-    //var interval = setInterval(function() {
-        //create powerup element
-        // container.appendChild(powerup);
-
-        // powerup.style.position = 'absolute';
-        // setInterval(frame, 5) //run frame every 5s
-        //determine how long element will stay in view
-        //    
-    //}, randDelay);
-
-    function init() {
-        update_color();
-        powerup.style.position = 'absolute';
-        //document.body.style.background = '#4d4d4d';
-        setInterval(frame2, 5); //run frame every 5 ms
+    constructor(id,name,imgSrc,descr,func){
+        this.id = id,
+        this.name = name,
+        this.imgSrc = imgSrc,
+        this.imgDiv = createImg("powerup",imgSrc);
+        this.descr = descr;
+        this.func = func;
+        this.activated = "";
+        this.xIncr = 1;
+        this.yIncr = 3;
     }
 
-    function update_color() {
-        const colors = ["#ff9933","#4700b3"]; 
+    set id(id){ 
+        this._id = id;
+    }
+    get id(){
+        return this._id;
+    }
+
+    set name(name){ 
+        this._name = name;
+    }
+    get name(){
+        return this._name;
+    }
+
+    set img(img){ 
+        this._img = img;
+    }
+    get img(){
+        return this._img;
+    }
+    set descr(descr){ 
+        this._descr = descr;
+    }
+    get descr(){
+        return this._descr;
+    }
+    set imgDiv(imgDiv){
+        this._imgDiv = imgDiv;
+    }
+    get imgDiv(){
+        return this._imgDiv;
+    }
+
+    set activated(activated){
+        this._activated = activated;
+    }
+    get activated(){
+        return this._activated;
+    }
+
+    set xIncr(xIncr){
+        this._xIncr = xIncr;
+    }
+    get xIncr(){
+        return this._xIncr
+    }
+    set yIncr(yIncr){
+        this._yIncr = yIncr;
+    }
+    get yIncr(){
+        return this._yIncr
+    }
+
+    init() {
+        this.updateColor();
+        this.imgDiv.style.position = 'absolute';
+        setInterval((() => this.frame(this)), 10); //run frame every 5 ms
+        hasPowerup = true;  
+        latestPowerup = this;
+    }
+
+    updateColor() {
+        //const colors = ["#ff9933","#4700b3"]; 
+        //const random = Math.floor((Math.random() * 2));
+        //let color = colors[random];
+        //potatoPowerupTarget = potatoes.filter(potato => potato.color === color)[0];
+        //select random potato
         const random = Math.floor((Math.random() * 2));
-        let color = colors[random];
-        console.log(color);
-        //powerup.style.fill = `hsl(${color},100%,50%)`;
-        powerup.style.borderColor = color;
+        potatoPowerupTarget = potatoes[random];
+        this.imgDiv.style.borderColor = potatoPowerupTarget.color;
+
     }
 
-    function handle_collision() {
-        console.log("powerup properties: ", powerup.offsetHeight, powerup.offsetWidth,powerup.offsetLeft, powerup.offsetTop);
-        let powerup_height = powerup.offsetHeight; 
+   handleCollision(powerup) {
+       // console.log("powerup properties: ", powerup.offsetHeight, powerup.offsetWidth,powerup.offsetLeft, powerup.offsetTop);
+        let powerup_height = powerup.imgDiv.offsetHeight; 
         //offsetHeight returns the height of an element, including vertical padding and borders, as an integer
-        let powerup_width = powerup.offsetWidth;
-        let left = powerup.offsetLeft; 
+        let powerup_width = powerup.imgDiv.offsetWidth;
+        let left = powerup.imgDiv.offsetLeft; 
         //returns the number of pixels that the upper left corner of the current element is offset to the left within the HTMLElement.offsetParent node.
-        let top = powerup.offsetTop - top_height;
-        //console.log(left);
+        const top_height = document.querySelector(".top").offsetHeight;
+        let top = powerup.imgDiv.offsetTop - top_height;
+        
+        const container = document.querySelector(".powerupbg");
         let win_height = container.offsetHeight; //window.innerHeight;
         let win_width = container.offsetWidth//window.innerWidth;
-        console.log("window properties: ", win_height,win_width);
+        // console.log("window properties: ", win_height,win_width);
 
         if (left <= 0 || left + powerup_width >= win_width) { //if doesnt got out of bound on left or on the right
-          x_incr = ~x_incr + 1;
-          //x_incr += x_incr;
-          update_color();
+          powerup.xIncr = ~powerup.xIncr + 1;
+          //xIncr += xIncr;
+          powerup.updateColor();
         }
         if (top <= 0 || top + powerup_height >= win_height) { //if doesnt got out of bound on bottom or on the top
-          y_incr = ~y_incr + 1;
-          //console.log("test2" + y_incr);
-          //y_incr += 1;
-          update_color();
+          powerup.yIncr = ~powerup.yIncr + 1;
+          //console.log("test2" + yIncr);
+          //yIncr += 1;
+          powerup.updateColor();
         }
-      }
+    }
 
-    function frame2() {
-        handle_collision();
+    frame(powerup) { 
+        powerup.handleCollision(powerup);
         //top height
         //let top_height = document.querySelector(".top").offsetHeight;
-        powerup.style.top = powerup.offsetTop + y_incr + "px";
-        powerup.style.left = powerup.offsetLeft + x_incr + "px";
-        console.log("x", powerup.offsetTop);
-        console.log("y", powerup.offsetLeft)
+        powerup.imgDiv.style.top = powerup.imgDiv.offsetTop + powerup.yIncr + "px";
+        powerup.imgDiv.style.left = powerup.imgDiv.offsetLeft + powerup.xIncr + "px";
+       // console.log("x", powerup.offsetTop);
+       // console.log("y", powerup.offsetLeft)
     }
+
 }
 
-const createPowerup = () => { //WIP
-    /* List of powerups
-    1. First aid
-    2. Shield
-    3. Time-warper
-    4. Attack-up
-    */
-    const powerUp = document.createElement("img");
-    const powerUps = [
-        {name: "First Aid",
-        img: " ",
-        description: "Increases HP by a random amount between 20 - 80.",
+//get when powerup 
+
+
+const initPowerup = () =>{ //rename this?
+    //select random powerup
+    console.log("hi");
+    const powerups = [
+        // {
+        // id: 0,
+        // name: "First Aid",
+        // img: "./img/powerup-firstaid.png",
+        // descr: "Increases HP by a random amount between 20 - 80.",
+        // func: firstAid
+        // },
+        {
+        id: 1,
+        name: "Shield",
+        img: "./img/powerup-shield.png",
+        descr: "Reduce damage of opposing player’s next attack by 20%.",
+        func: shield
         },
-        {name: "Shield",
-        img: " ",
-        description: "Reduce damage of opposing player’s next attack by 20%."
-        },
-        {name: "Time-warper",
-        img: " ",
-        description: "Delays opposing player’s moves for 5s."
-        },
-        {name: "Attackup",
-        img: " ",
-        description: "Increase damage of next attack by 10%."
+        // {
+        // id: 2,
+        // name: "Timewarp",
+        // img: "./img/powerup-timewarp.png",
+        // descr: "Delays opposing player’s moves for 5s.",
+        // func: timeWarp
+        // },
+        {
+        id: 3,
+        name: "Attack Up",
+        img: "./img/powerup-attackup.png",
+        descr: "Increase damage of next attack by 10%.",
+        func: attackUp
         },
     ];
-    powerUp.setAttribute("src",)
+
+    let randDelay = (Math.floor(Math.random() * (powerUpDurationUpperRange - powerUpDurationLowerRange)) + powerUpDurationLowerRange)  * 1000; 
+
+    console.log("randDelay:" + randDelay);
+    setTimeout(
+        () => {
+            const randPowerup = powerups[Math.floor(Math.random() * powerups.length)];
+            const powerup = new Powerup(randPowerup.id, randPowerup.name, randPowerup.img, randPowerup.descr, randPowerup.func);
+            const container = document.querySelector(".powerupbg");
+            container.appendChild(powerup.imgDiv);
+            document.querySelector('.bottom').appendChild(container);
+            powerup.init();
+        }    
+        
+    ,randDelay);
 }
 
+// const removePowerup = (powerup) => {
+//     powerup.remove();
+//     //remove event listener
+//     //remove setInterval
+// }
 
-//=====================
-// Create HTML elements
-// Functions used to create HTML elements.
-//=====================
-const createDiv = (className, id) => {
-    const div = document.createElement("div");
-    div.classList.add(className);
-    if (id) div.id = id;
-    return div;
+const firstAid = (potato) => {
+    console.log("potato used first aid!");
+    const max = 100;
+    const min = 20;
+    const addHealth = Math.floor(Math.random()*(max-min)) + min;
+    potato.healthBar.updateHealth(addHealth);
+    potato.powerup = "";
+} 
+
+const shield = (potato) => {
+    console.log("potato used shield!");
+    console.log("line 685: " + potato.powerup.name);
+    potato.powerup.activated = potato.powerup.name;
 }
 
-const createImg = (className, src, id) => {
-    const img = document.createElement("img");
-    img.classList.add(className);
-    if (src) img.setAttribute("src",src);
-    if (id) img.id = id;
-    return img;
+const timeWarp = (potato) => {
+    console.log("potato used timewarp!");
+    potato.powerup.activated = potato.powerup.name;
 }
 
-const createButton = (className) => {
-    const btn = document.createElement("button");
-    btn.innerText = className;
-    btn.classList.add(className);
-    return btn;
-}
-
-const createPotatoDiv = (potato) => {
-    const div = document.createElement("div");
-    div.classList.add("potato");
-    div.id = potato.id;
-    const img = document.createElement("img");
-    img.setAttribute("src","img/potato_knife.svg");
-    div.appendChild(img);
-    //create hp bar
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
-    canvas.id = "health-bar-" + potato.id;
-    canvas.width = 100;
-    canvas.height = 20;
-    canvas.style.backgroundColor = "pink"
-    const width = canvas.width;
-    const height = canvas.height;
-    let health = potato.hp;
-    const healthBarWidth = canvas.width;
-    const healthBarHeight = canvas.height;
-    const x = 0;
-    const y = 0;
-
-    const healthBar = new HealthBar(x, y, healthBarWidth, healthBarHeight, health);
-    potato.healthBar = healthBar;
-
-    const frame = () => {
-        context.clearRect(0, 0, width, height);
-        healthBar.show(context);
-        requestAnimationFrame(frame);
-    }
-
-    frame();
-    //end create hp bar
-
-    div.appendChild(canvas);
-    return div;
-}
-
-const createActionRowDiv = (potato) => {
-    const actionRowDiv = createDiv("action-row", `action-row-${potato.id}`);
-    const keySequenceDiv = createDiv("key-sequence", `key-sequence-${potato.id}`);
-    const damageDiv = createDiv("damage-points", `damage-points-${potato.id}`);
-    const damageHeader = document.createElement("p");
-    damageHeader.innerText = "Damage"
-    const damageText = document.createElement("p");
-    damageText.innerText = potato.attack;``
-    damageDiv.append(damageHeader,damageText);
-    actionRowDiv.append(keySequenceDiv,damageDiv);
-    return actionRowDiv;
+const attackUp = (potato) => {
+    console.log("potato used attack up!");
+    console.log("line 697: " + potato.powerup.name);
+    potato.powerup.activated = potato.powerup.name;
 }
 
 render();
