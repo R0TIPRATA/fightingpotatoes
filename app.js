@@ -31,7 +31,7 @@ const createImg = (className, src, id) => {
 
 const createButton = (className) => {
     const btn = document.createElement("button");
-    btn.innerText = className;
+    //btn.innerText = className;
     btn.classList.add(className);
     return btn;
 }
@@ -41,7 +41,7 @@ const createPotatoDiv = (potato) => {
     div.classList.add("potato");
     div.id = "potato-" + potato.id;
     const img = document.createElement("img");
-    img.setAttribute("src","img/potato_knife.svg");
+    potato.id === 0 ?  img.setAttribute("src","img/potato_knife.svg") : img.setAttribute("src","img/potato_knife2.svg");
     div.appendChild(img);
     //create hp bar
     const canvas = document.createElement("canvas");
@@ -58,7 +58,7 @@ const createPotatoDiv = (potato) => {
     const x = 0;
     const y = 0;
 
-    const healthBar = new HealthBar(x, y, healthBarWidth, healthBarHeight, health);
+    const healthBar = new HealthBar(canvas.id, x, y, healthBarWidth, healthBarHeight, health);
     potato.healthBar = healthBar;
 
     const frame = () => {
@@ -68,8 +68,10 @@ const createPotatoDiv = (potato) => {
     }
 
     frame();
-    //end create hp bar
 
+    //end create hp bar
+    //hide healthbar initially
+    canvas.classList.add("hidden");
     div.appendChild(canvas);
     return div;
 }
@@ -79,7 +81,7 @@ const createActionRowDiv = (potato) => {
     const keySequenceDiv = createDiv("key-sequence", `key-sequence-${potato.id}`);
     const damageDiv = createDiv("damage-points", `damage-points-${potato.id}`);
     const damageHeader = document.createElement("p");
-    damageHeader.innerText = "Damage"
+    damageHeader.innerText = "DAMAGE"
     const damageText = document.createElement("p");
     damageText.innerText = potato.attack;
     damageDiv.append(damageHeader,damageText);
@@ -185,13 +187,14 @@ const Potato = class {
         }else{
             this.powerup.func(this);
         }
-        this.powerupDiv.remove();
+        //this.powerupDiv.remove();
     }
 
 }
 
 const HealthBar = class {
-    constructor(x,y,w,h,maxHp){
+    constructor(id,x,y,w,h,maxHp){
+        this.id = id;
         this.x = x;
         this.y = y;
         this.w = w;
@@ -224,10 +227,6 @@ const potatoes = [potatoOne, potatoTwo]; //used for powerup functions
 const resetValues = (potato) => {
     potato.hp = potato.maxHp;
     potato.healthBar.updateHealth(potato.maxHp);
-}
-
-const render = () => {
-    titleScreen();
 }
 
 
@@ -267,6 +266,7 @@ const titleScreen = () => {
     //append all elements
     top.append(titleImg);
     bottom.append(potatoesWrapper, buttonsWrapper);
+
 }
 
 const playScreen = () => {
@@ -274,6 +274,10 @@ const playScreen = () => {
     const top = document.querySelector(".top");
     top.innerHTML = "";
     top.append(createActionRowDiv(potatoOne),createActionRowDiv(potatoTwo));
+    
+    //show healthBar
+    document.querySelector("#" + potatoOne.healthBar.id).classList.remove("hidden");
+    document.querySelector("#" + potatoTwo.healthBar.id).classList.remove("hidden");
 
     setKeystrokes(keystrokeNum,potatoOne);
     setKeystrokes(keystrokeNum,potatoTwo);
@@ -314,8 +318,8 @@ const gameOverScreen = (winner) =>{
 const EventHandlers = {
     onKeydown: (event) => {
         event.preventDefault(); //prevent space bar scrolling
-        const potatoOneKeys = {actionKeys: ["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"], finalKey: "Enter", powerupKey: "/"};
-        const potatoTwoKeys = {actionKeys: ["w","a","s","d"], finalKey: " ", powerupKey:"c"};
+        const potatoOneKeys = {actionKeys: ["w","a","s","d"], finalKey: " ", powerupKey:"c"};
+        const potatoTwoKeys = {actionKeys: ["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"], finalKey: "Enter", powerupKey: "/"};
         const input = event.key;
         console.log(input);
         if (potatoOne.keystrokeElementArr.length > 1 && potatoOneKeys.actionKeys.includes(input)) { validateKey(potatoOne, input); } //if keys are arrows, or enter
@@ -326,17 +330,12 @@ const EventHandlers = {
         const powerupKey = "h";
         if(hasPowerup && input === powerupKey ){
             console.log(potatoPowerupTarget.id + "got the powerup!"); //success! correct potato shown
-            //store powerup in potato powerup
-            //BUG: Instead of using potatoPowerupTarget, use potatoOne or potatoTwo object instead
-            //How? I am not sure myslef >.<
-
-            
             potatoPowerupTarget.powerup = latestPowerup;
             //console.log( "potato-" + potatoPowerupTarget.id + " got " + potatoPowerupTarget.powerup.name);
             //display powerup
             potatoPowerupTarget.powerupDiv.innerHTML= "";
             const potatoPowerupDiv = potatoPowerupTarget.powerupDiv;
-            const potatoPowerupImg = createImg("potato-powerup-img", latestPowerup.imgSrc);
+            const potatoPowerupImg = createImg("potato-powerup-img", latestPowerup.imgSrc, "potato-powerup-img-" + potatoPowerupTarget.id);
             console.log("img", potatoPowerupImg)
             //potatoPowerupImg.style.width = "20px";
             const potatoDiv = document.querySelector("#potato-" + potatoPowerupTarget.id );
@@ -405,17 +404,21 @@ const attackOpponent = (attackingPotato, receivingPotato) => {
     
     //check if got attackup powerup, increase final attack by 10%
     console.log("attacking potato:" + attackingPotato.id);
-    console.log("attacking potato powerup:" + JSON.stringify(attackingPotato.powerup)); //bug:this aint showing
+    console.log("attacking potato powerup:" + JSON.stringify(attackingPotato.powerup)); 
 
     console.log("receiving potato:" + receivingPotato.id);
     console.log("receiving potato powerup:" + receivingPotato.powerup.activated);
     if(attackingPotato.powerup.activated ==="Attack Up"){
         attackingPotato.attack = (attackingPotato.attack/100) * 120;
-        console.log("attack! :" + attackingPotato.attack);
+        attackingPotato.powerupDiv.remove();
+        attackingPotato.powerup="";
+        //console.log("attack! :" + attackingPotato.attack);
     }
     if(receivingPotato.powerup.activated ==="Shield"){
         attackingPotato.attack = (attackingPotato.attack/100) * 80;
-        console.log("attack! :" + attackingPotato.attack);
+        receivingPotato.powerupDiv.remove();
+        receivingPotato.powerup="";
+        //console.log("attack! :" + attackingPotato.attack);
     }
 
     //reduce hp in healthBar
@@ -440,7 +443,7 @@ const setKeystrokes = (keystrokeNum,potato) => {
     const potatoIndex = potato.id;
     const keySequence = document.querySelector("#key-sequence-" + potatoIndex);
     const keystrokeArr = []; 
-    const possibleKeys = [ {keystroke: ["ArrowUp","w"], icon: "./img/arrow-up.svg"}, {keystroke: ["ArrowDown","s"], icon: "./img/arrow-down.svg"}, {keystroke: ["ArrowLeft","a"], icon: "./img/arrow-left.svg"}, {keystroke: ["ArrowRight","d"], icon: "./img/arrow-right.svg"} ];
+    const possibleKeys = [ {keystroke: ["w","ArrowUp"], icon: "./img/arrow-up.svg"}, {keystroke: ["s","ArrowDown"], icon: "./img/arrow-down.svg"}, {keystroke: ["a","ArrowLeft"], icon: "./img/arrow-left.svg"}, {keystroke: ["d","ArrowRight"], icon: "./img/arrow-right.svg"} ];
     for(let i = 1 ; i <= keystrokeNum; i++){
         const keystrokeElement = document.createElement("div");
         let selectedKey = possibleKeys[Math.floor(Math.random() * 4)]; //selected key 
@@ -451,7 +454,7 @@ const setKeystrokes = (keystrokeNum,potato) => {
             potato.activeKey = selectedKeyValue;
         };
         if (i===keystrokeNum) { //last key   
-            potatoIndex === 0 ? selectedKey = {keystroke: "Enter", icon: "img/enter.png"} : selectedKey = {keystroke: " ", icon: "img/space.png"}
+            potatoIndex === 0 ? selectedKey = {keystroke: " ", icon: "img/space.png"} : selectedKey = {keystroke: "enter", icon: "img/enter.png"}
             selectedKeyValue = selectedKey.keystroke;
         };
         keystrokeElement.classList.add("keystroke");
@@ -470,6 +473,7 @@ const setKeystrokes = (keystrokeNum,potato) => {
 const clearKeystrokes = (potato) => {
     const keySequence = document.querySelector("#key-sequence-" + potato.id);
     keySequence.innerHTML = "";
+    document.querySelector("#damage-points-" + potato.id ).children[1].innerText = 0;
 }
 
 
@@ -679,36 +683,36 @@ const firstAid = (potato) => {
     const addHealth = Math.floor(Math.random()*(max-min)) + min;
     potato.healthBar.updateHealth(addHealth);
     potato.powerup = "";
+    potato.powerupDiv.remove();
 } 
 
 const shield = (potato) => {
     console.log("potato used shield!");
-    console.log("line 685: " + potato.powerup.name);
-    potato.powerup.activated = potato.powerup.name;
+    activatePowerup(potato);
 }
 
 const timeWarp = (potato) => {
     console.log("potato used timewarp!");
-    potato.powerup.activated = potato.powerup.name;
+    activatePowerup(potato);
 }
 
 const attackUp = (potato) => {
     console.log("potato used attack up!");
-    console.log("line 697: " + potato.powerup.name);
+    activatePowerup(potato);
+}
+
+const activatePowerup = (potato) => {
     potato.powerup.activated = potato.powerup.name;
+    document.querySelector("#potato-powerup-"+potato.id).children[0].style.borderColor = "red";
+}
+const render = () => {
+    titleScreen();
 }
 
 render();
+
 /*
 RESOURCES:
 1. Building Healthbar: https://www.youtube.com/watch?v=Wh2kVSPi_sE&t=454s
-
-*/
-
-/*TASKS FOR TOMORROW:
-
-- 1. CHANGE ATTRIBUTES IN OBJECTS. REMOVE _ CHARACTER (done)
-- 2. INCLUDE POWERUP BOUNCING ELEMENT
-- 3. REORGANIZE CODE
-
+2. Bouncing animation: 
 */

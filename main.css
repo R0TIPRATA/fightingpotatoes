@@ -1,3 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Darumadrop+One&display=swap');
+
+body{
+    font-family: 'Darumadrop One', cursive;
+}
+
 .top{
     display: flex;
     flex-direction: column;
@@ -42,9 +48,30 @@
 .play-btn, .help-btn, .settings-btn, .replay-btn {
     display: block;
     background-color: red;
+    border: 0px;
     border-radius: 50%;
-    height: 80px;
-    width: 80px;
+    height: 90px;
+    width: 90px;
+}
+
+.help-btn, .settings-btn{
+    height:60px;
+    width:60px;
+}
+
+.play-btn{
+    background-color: #BBC1FD;
+    background-image: url(./img/btn-play.png);     
+}
+
+.help-btn{
+    background-color: #F3C887;
+    background-image: url(./img/btn-help.png);     
+}
+
+.settings-btn{
+    background-color: #F2B1B1;
+    background-image: url(./img/btn-settings.png);     
 }
 
 button{
@@ -60,6 +87,8 @@ button:hover{
 .buttons-wrapper{
     display:flex;
     justify-content: center;
+    align-items: center;
+    gap:16px;
 }
 
 .title-img{
@@ -90,23 +119,31 @@ button:hover{
     display: flex;
     justify-items: center;
     align-items:center;
-    background-color: aqua;
     height:100px;
     margin-bottom:8px;
     width:80%;
 }
 
+#action-row-0{
+    background-color: #ffc787;
+}
+
+#action-row-1{
+    background-color: #c5b7ff;
+}
+
 .key-sequence{
     display:flex;
     width: 100%;
+    justify-content: space-evenly;
 }
 
 .keystroke[data-keystroke-status="active"]{
-    border: 2px solid blue;
+    border: 4px solid white;
 }
 
 .keystroke[data-keystroke-status="inactive"]{
-    background-color: gainsboro;
+    opacity:40%
 }
 
 .keystroke[data-keystroke-status="correct"]{
@@ -136,4 +173,8 @@ canvas {
     display:relative;
     width: 800px;
     height: 800px;
+}
+
+.potato-powerup-img{
+    border: solid 4px transparent;
 }
