@@ -3,7 +3,7 @@
 const attackPower = 1; //damage taken per attack
 const keystrokeNum = 10; //determines how many keys you want before attacking
 const powerUpDurationLowerRange = 1;
-const powerUpDurationUpperRange = 5; //power up will appear every 30 - 60 s
+const powerUpDurationUpperRange = 5; //power up will appear every 1 - 5 s
 let hasPowerup = false;
 let latestPowerup = "";
 const colorOne = "#ff9933"; //to refactor
@@ -36,13 +36,32 @@ const createButton = (className) => {
     return btn;
 }
 
+const showElement = (element) => {
+    element.classList.remove("hidden");
+}
+
 const createPotatoDiv = (potato) => {
-    const div = document.createElement("div");
-    div.classList.add("potato");
-    div.id = "potato-" + potato.id;
+    // const div = document.createElement("div"); //this is the parent
+    // div.classList.add("potato");
+    // div.id = "potato-" + potato.id;
+    const div = createDiv("potato", "potato-" + potato.id)
     const img = document.createElement("img");
     potato.id === 0 ?  img.setAttribute("src","img/potato_knife.svg") : img.setAttribute("src","img/potato_knife2.svg");
-    div.appendChild(img);
+
+    //create potato avatar div which contains potato avatar and effects
+    const potatoAvatarDiv = createDiv("potato-avatar", "potato-avatar-" + potato.id);
+    //append img 
+    potatoAvatarDiv.appendChild(img);
+
+    //append effect (to change this, still testing)
+    const effectSrc = "./img/effect-hit.png";
+    const imgContainer = createImg("dmg-effect",effectSrc,"dmg-effect-"+potato.id);
+    imgContainer.classList.add("hidden");
+    potatoAvatarDiv.appendChild(imgContainer);
+
+    //append potatoAvatar to div
+    div.appendChild(potatoAvatarDiv);
+
     //create hp bar
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
@@ -79,13 +98,19 @@ const createPotatoDiv = (potato) => {
 const createActionRowDiv = (potato) => {
     const actionRowDiv = createDiv("action-row", `action-row-${potato.id}`);
     const keySequenceDiv = createDiv("key-sequence", `key-sequence-${potato.id}`);
+
+    const potatoIdDiv = createDiv("potato-id-", `potato-id-${potato.id}`);
+    const potatoIdElement = document.createElement("h3");
+    potatoIdElement.innerText = "P" + (potato.id + 1);
+    potatoIdDiv.appendChild(potatoIdElement);
+
     const damageDiv = createDiv("damage-points", `damage-points-${potato.id}`);
     const damageHeader = document.createElement("p");
     damageHeader.innerText = "DAMAGE"
     const damageText = document.createElement("p");
     damageText.innerText = potato.attack;
     damageDiv.append(damageHeader,damageText);
-    actionRowDiv.append(keySequenceDiv,damageDiv);
+    actionRowDiv.append(potatoIdDiv,keySequenceDiv,damageDiv);
     return actionRowDiv;
 }
 
@@ -286,7 +311,7 @@ const playScreen = () => {
     document.addEventListener("keydown", EventHandlers.onKeydown);
 
     //include powerup
-    initPowerup();
+    //initPowerup();
 }
 
 const gameOverScreen = (winner) =>{
@@ -295,6 +320,9 @@ const gameOverScreen = (winner) =>{
     const top = document.querySelector(".top");
     top.innerHTML = "";
     document.querySelector(".powerupbg").innerHTML="";
+
+    document.querySelector("#" + potatoOne.healthBar.id).classList.add("hidden");
+    document.querySelector("#" + potatoTwo.healthBar.id).classList.add("hidden");
     //create elements for game over screen
     const resultsTextElement = document.createElement("h3");
     const potatoIndex = winner.id + 1;
@@ -420,6 +448,9 @@ const attackOpponent = (attackingPotato, receivingPotato) => {
         receivingPotato.powerup="";
         //console.log("attack! :" + attackingPotato.attack);
     }
+
+    //show attack!
+    showBigDamage(attackingPotato.attack,receivingPotato);
 
     //reduce hp in healthBar
     receivingPotato.hp -= attackingPotato.attack;
@@ -624,13 +655,13 @@ const initPowerup = () =>{ //rename this?
     //select random powerup
     console.log("hi");
     const powerups = [
-        // {
-        // id: 0,
-        // name: "First Aid",
-        // img: "./img/powerup-firstaid.png",
-        // descr: "Increases HP by a random amount between 20 - 80.",
-        // func: firstAid
-        // },
+        {
+        id: 0,
+        name: "First Aid",
+        img: "./img/powerup-firstaid.png",
+        descr: "Increases HP by a random amount between 20 - 80.",
+        func: firstAid
+        },
         {
         id: 1,
         name: "Shield",
@@ -705,11 +736,77 @@ const activatePowerup = (potato) => {
     potato.powerup.activated = potato.powerup.name;
     document.querySelector("#potato-powerup-"+potato.id).children[0].style.borderColor = "red";
 }
+
+
+/*
+---------------
+Special effects
+---------------
+*/
+const showCollectedDmg = (damage) => {
+    //create an element
+    const p = document.createElement("p");
+    p.className = "collected-dmg";
+    damage !== 0 ? p.innerText = "-" + damage : p.innerText = damage;
+
+    //delete the element
+    //p.remove();
+}
+
+const showBigDamage = (damage,receivingPotato) => {
+    //show hit effect image next to receiving potato
+    //show dmg
+   // const src = "./img/effect-hit.png";
+    const potatoAvatar =  document.querySelector("#potato-avatar-"+receivingPotato.id);
+    const dmgEffect = document.querySelector("#dmg-effect-"+receivingPotato.id);//createImg("dmg-effect",src,"dmg-effect-"+receivingPotato.id);
+    showElement(dmgEffect);
+    //potatoOne.div.appendChild(imgContainer);
+    //receivingPotato.div.append(imgContainer);
+        //append effect (to change this, still testing)
+    // const effectSrc = "./img/effect-hit.png";
+    // const imgContainer = createImg("dmg-effect",effectSrc,"dmg-effect-"+potato.id);
+    // potatoAvatarDiv.appendChild(imgContainer);
+
+    const p = document.createElement("p");
+    p.className = "big-dmg";
+    p.innerText = "-" + damage;
+    potatoAvatar.append(p);
+
+    setTimeout( () => {
+        dmgEffect.classList.add("hidden");
+        p.remove();
+    },400);
+}
+
+
+//check whether sequence is a perfect combination
+//if perfect combination, increase damage
+//show this effect
+
+
+//check if on nth round on keyboard sequence
+//if on nth round, reflect multiplier effect
+//show multiplier effect
+
+
+//add sprite animation
+
+//add music
+
+
+
+/*
+----------------
+Render
+----------------
+*/
+
 const render = () => {
     titleScreen();
 }
 
 render();
+
 
 /*
 RESOURCES:

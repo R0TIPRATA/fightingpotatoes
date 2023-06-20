@@ -4,6 +4,11 @@ body{
     font-family: 'Darumadrop One', cursive;
 }
 
+p{
+    margin: 0px;
+}
+
+
 .top{
     display: flex;
     flex-direction: column;
@@ -47,7 +52,6 @@ body{
 
 .play-btn, .help-btn, .settings-btn, .replay-btn {
     display: block;
-    background-color: red;
     border: 0px;
     border-radius: 50%;
     height: 90px;
@@ -72,6 +76,11 @@ body{
 .settings-btn{
     background-color: #F2B1B1;
     background-image: url(./img/btn-settings.png);     
+}
+
+.replay-btn{
+    background-color: #BBC1FD;
+    background-image: url(./img/btn-replay.png);     
 }
 
 button{
@@ -99,6 +108,7 @@ button:hover{
 
 .potato{
     display: inline-block;
+    position: relative;
 }
 
 #potato2 {
@@ -154,9 +164,9 @@ button:hover{
     background-color: pink;
 }
 
-.damage-points{
+/* .damage-points{
     background-color: pink;
-}
+} */
 
 .hidden{
     display: none;
@@ -177,4 +187,38 @@ canvas {
 
 .potato-powerup-img{
     border: solid 4px transparent;
+}
+
+
+#dmg-effect-0{
+    position:absolute;
+    right: 180px;
+    -moz-transform: scaleX(-1);
+    -o-transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+}
+
+#dmg-effect-1{
+    position:absolute;
+    left: 180px;
+}
+
+.big-dmg{
+    position:absolute;
+    top:15px;
+    font-size: 32px;
+    color:red;
+}
+
+.potato-avatar{
+    position:relative;
+}
+
+#potato-avatar-0  .big-dmg{
+    left:-35px;
+}
+
+#potato-avatar-1 .big-dmg{
+    right:-35px;
 }
