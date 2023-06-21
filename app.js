@@ -276,9 +276,10 @@ const HealthBar = class {
     }
 
     updateHealth(hp){
-        if (hp < 0){hp = 0}
+        if (hp < 0){hp = 0} 
         this.health = hp;
         this.w = (hp/this.maxHp) * this.maxWidth;
+        console.log(this.w);
     }
 }
 
@@ -482,13 +483,13 @@ const attackOpponent = (attackingPotato, receivingPotato) => {
     console.log("receiving potato:" + receivingPotato.id);
     console.log("receiving potato powerup:" + receivingPotato.powerup.activated);
     if(attackingPotato.powerup.activated ==="Attack Up"){
-        attackingPotato.attack = (attackingPotato.attack/100) * 120;
+        attackingPotato.attack = Math.round((attackingPotato.attack/100) * 120);
         attackingPotato.powerupDiv.remove();
         attackingPotato.powerup="";
         //console.log("attack! :" + attackingPotato.attack);
     }
     if(receivingPotato.powerup.activated ==="Shield"){
-        attackingPotato.attack = (attackingPotato.attack/100) * 80;
+        attackingPotato.attack = Math.round((attackingPotato.attack/100) * 80);
         receivingPotato.powerupDiv.remove();
         receivingPotato.powerup="";
         //console.log("attack! :" + attackingPotato.attack);
@@ -509,7 +510,7 @@ const attackOpponent = (attackingPotato, receivingPotato) => {
     console.log("multiplier: " + attackingPotato.multiplier);
 
     //show attack!
-    attackingPotato.attack = attackingPotato.attack * attackingPotato.multiplier 
+    attackingPotato.attack = Math.round(attackingPotato.attack * attackingPotato.multiplier);
     showBigDamage(attackingPotato.attack,receivingPotato);
     attackingPotato.numRounds++; 
 
@@ -775,7 +776,8 @@ const firstAid = (potato) => {
     console.log("potato used first aid!");
     const max = 100;
     const min = 20;
-    const addHealth = Math.floor(Math.random()*(max-min)) + min;
+    const addHealth = potato.hp + Math.floor(Math.random()*(max-min)) + min;
+    console.log(addHealth);
     potato.healthBar.updateHealth(addHealth);
     potato.powerup = "";
     potato.powerupDiv.remove();
