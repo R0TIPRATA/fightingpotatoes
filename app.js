@@ -1,7 +1,8 @@
 
 //settings
-const attackPower = 1; //damage taken per attack
+const attackPower = 2; //damage taken per attack
 const keystrokeNum = 10; //determines how many keys you want before attacking
+const maxAttackPower = attackPower * keystrokeNum;
 const powerUpDurationLowerRange = 1;
 const powerUpDurationUpperRange = 5; //power up will appear every 1 - 5 s
 let hasPowerup = false;
@@ -118,11 +119,13 @@ const Potato = class {
     constructor(id,color){
         this.id = id;
         this.color = color;
-        this.maxHp = 20;
+        this.maxHp = 400;
         this.hp = this.maxHp;
         this.attack = 0;
         this.keystrokeElementArr = [];
         this.activeKey = "";
+        this.isPerfectCombo = true;
+        this.numPerfectCombo = 0;
         this.div= "";
         this.powerup = ""; 
         this.powerupDiv = createDiv("potato-powerup","potato-powerup-" + this.id);
@@ -177,6 +180,21 @@ const Potato = class {
     get activeKey(){
         return this._activeKey;
     }
+
+    set isPerfectCombo(isPerfectCombo){
+        this._isPerfectCombo = isPerfectCombo;
+    }
+    get isPerfectCombo(){
+        return this._isPerfectCombo;
+    }
+
+    set numPerfectCombo(numPerfectCombo){
+        this._numPerfectCombo = numPerfectCombo;
+    }
+    get numPerfectCombo(){
+        return this._numPerfectCombo;
+    }
+
 
     set div(div){
         this._div = div;
@@ -252,6 +270,8 @@ const potatoes = [potatoOne, potatoTwo]; //used for powerup functions
 const resetValues = (potato) => {
     potato.hp = potato.maxHp;
     potato.healthBar.updateHealth(potato.maxHp);
+    potato.numPerfectCombo = 0;
+    potato.isPerfectCombo = true;
 }
 
 
@@ -401,6 +421,7 @@ const validateKey = (potato, input) =>{
     input === potato.activeKey ? setCorrect(potato, potato.keystrokeElementArr) : setMissed(potato, potato.keystrokeElementArr);
 }
 
+//count if correct == 9 
 const setCorrect = (potato, keystrokeElementArr) => {
     const currentKeystroke = keystrokeElementArr[0];
     currentKeystroke.dataset.keystrokeStatus = "correct";
@@ -413,6 +434,7 @@ const setCorrect = (potato, keystrokeElementArr) => {
     nextKeystroke.dataset.keystrokeStatus = "active";
     potato.keystrokeElementArr.shift();
 }
+
 
 const setMissed = (potato, keystrokeElementArr) => {
     const currentKeystroke = keystrokeElementArr[0];
@@ -449,8 +471,24 @@ const attackOpponent = (attackingPotato, receivingPotato) => {
         //console.log("attack! :" + attackingPotato.attack);
     }
 
+    attackingPotato.isPerfectCombo && attackingPotato.numPerfectCombo++;
+
+    //determine multiplier
+    //if 1 set complete x 1.5
+    if(attackingPotato.numPerfectCombo == 1){
+        attackingPotato.multiplier = 1.5;
+    }else if(attackingPotato.numPerfectCombo == 3){
+        attackingPotato.multiplier = 2.5;
+    }else if(attackingPotato.numPerfectCombo == 5){
+        attackingPotato.multiplier = 3;
+    }
+
+    console.log("multiplier: " + attackingPotato.multiplier);
+
     //show attack!
+    attackingPotato.attack = attackingPotato.attack * attackingPotato.multiplier 
     showBigDamage(attackingPotato.attack,receivingPotato);
+
 
     //reduce hp in healthBar
     receivingPotato.hp -= attackingPotato.attack;
@@ -781,7 +819,7 @@ const showBigDamage = (damage,receivingPotato) => {
 
 //check whether sequence is a perfect combination
 //if perfect combination, increase damage
-//show this effect
+//show this effect  (DONE but havent show effect)
 
 
 //check if on nth round on keyboard sequence
