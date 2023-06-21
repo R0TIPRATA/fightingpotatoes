@@ -26,7 +26,7 @@ For detailed instructions please view here:
   <li>Bonus points and multipliers.</li>
   <li>Include music and additional animations.</li>
   <li>Ability to customize potato (e.g. skin colour, accessories, weapon).</li>
-  <li>Pause function in-game. ✔️</li>
+  <li>Pause function in-game. </li>
 </ol>
 
 
