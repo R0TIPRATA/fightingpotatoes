@@ -124,8 +124,10 @@ const Potato = class {
         this.attack = 0;
         this.keystrokeElementArr = [];
         this.activeKey = "";
+        this.numRounds = 0;
         this.isPerfectCombo = true;
         this.numPerfectCombo = 0;
+        this.multiplier = 1;
         this.div= "";
         this.powerup = ""; 
         this.powerupDiv = createDiv("potato-powerup","potato-powerup-" + this.id);
@@ -181,6 +183,13 @@ const Potato = class {
         return this._activeKey;
     }
 
+    set numRounds(numRounds){
+        this._numRounds = numRounds;
+    }
+    get numRounds(){
+        return this._numRounds;
+    }
+
     set isPerfectCombo(isPerfectCombo){
         this._isPerfectCombo = isPerfectCombo;
     }
@@ -195,6 +204,12 @@ const Potato = class {
         return this._numPerfectCombo;
     }
 
+    set multiplier(multiplier){
+        this._multiplier = multiplier;
+    }
+    get multiplier(){
+        return this._multiplier;
+    }
 
     set div(div){
         this._div = div;
@@ -230,7 +245,12 @@ const Potato = class {
         }else{
             this.powerup.func(this);
         }
-        //this.powerupDiv.remove();
+    }
+
+    checkBonus(){
+        let extraPoints = 0;
+        this._numRounds < 3 ? extraPoints = 0 : this._numRounds < 5 ? extraPoints = 10 : this._numRounds < 7 ? extraPoints = 20 : extraPoints = 30;
+        return extraPoints;
     }
 
 }
@@ -272,6 +292,7 @@ const resetValues = (potato) => {
     potato.healthBar.updateHealth(potato.maxHp);
     potato.numPerfectCombo = 0;
     potato.isPerfectCombo = true;
+    potato.numRounds = 0;
 }
 
 
@@ -437,6 +458,8 @@ const setCorrect = (potato, keystrokeElementArr) => {
 
 
 const setMissed = (potato, keystrokeElementArr) => {
+    potato.isPerfectCombo = false;
+    potato.multiplier = 1;
     const currentKeystroke = keystrokeElementArr[0];
     currentKeystroke.dataset.keystrokeStatus = "missed";
     potato.keystrokeElementArr = keystrokeElementArr;
@@ -488,14 +511,18 @@ const attackOpponent = (attackingPotato, receivingPotato) => {
     //show attack!
     attackingPotato.attack = attackingPotato.attack * attackingPotato.multiplier 
     showBigDamage(attackingPotato.attack,receivingPotato);
-
+    attackingPotato.numRounds++; 
 
     //reduce hp in healthBar
     receivingPotato.hp -= attackingPotato.attack;
     receivingPotato.healthBar.updateHealth(receivingPotato.hp);
     attackingPotato.attack = 0; //set to 0 again for next sequence
+    //for a certain number of rounds, award points
+    console.log("Attacking potato rounds: " + attackingPotato.numRounds);
+    console.log("Attacking potato bonus: " + attackingPotato.checkBonus());
+    attackingPotato.attack += attackingPotato.checkBonus();
+    
     if(receivingPotato.hp <= 0) {
-        //console.log("game ends!");
         gameOverScreen(attackingPotato);
     }else{
         clearKeystrokes(attackingPotato);
@@ -534,7 +561,6 @@ const setKeystrokes = (keystrokeNum,potato) => {
         keystrokeElement.appendChild(keyIconElement);
         keystrokeArr.push(keystrokeElement);
     }
-    //console.log(potato.keystrokeElementArr);
     potato.keystrokeElementArr = keystrokeArr;
     keystrokeArr.forEach(keystroke => keySequence.appendChild(keystroke));
 }   
@@ -542,7 +568,7 @@ const setKeystrokes = (keystrokeNum,potato) => {
 const clearKeystrokes = (potato) => {
     const keySequence = document.querySelector("#key-sequence-" + potato.id);
     keySequence.innerHTML = "";
-    document.querySelector("#damage-points-" + potato.id ).children[1].innerText = 0;
+    document.querySelector("#damage-points-" + potato.id ).children[1].innerText = potato.attack;
 }
 
 
@@ -819,12 +845,12 @@ const showBigDamage = (damage,receivingPotato) => {
 
 //check whether sequence is a perfect combination
 //if perfect combination, increase damage
-//show this effect  (DONE but havent show effect)
+//show this effect  (DONE but havent shown effect)
 
 
 //check if on nth round on keyboard sequence
 //if on nth round, reflect multiplier effect
-//show multiplier effect
+//show multiplier effect (DONE but havent shown effect)
 
 //fix bug on powerup
 
