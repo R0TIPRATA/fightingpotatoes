@@ -311,7 +311,7 @@ const playScreen = () => {
     document.addEventListener("keydown", EventHandlers.onKeydown);
 
     //include powerup
-    //initPowerup();
+    initPowerup();
 }
 
 const gameOverScreen = (winner) =>{
@@ -775,7 +775,7 @@ const showBigDamage = (damage,receivingPotato) => {
     setTimeout( () => {
         dmgEffect.classList.add("hidden");
         p.remove();
-    },400);
+    },1000);
 }
 
 
@@ -788,11 +788,20 @@ const showBigDamage = (damage,receivingPotato) => {
 //if on nth round, reflect multiplier effect
 //show multiplier effect
 
+//fix bug on powerup
+
 
 //add sprite animation
 
+//improve potato distance UI
+
 //add music
 
+//include instructions
+
+//include settings?
+
+//start on Github writeup
 
 
 /*
@@ -812,4 +821,5 @@ render();
 RESOURCES:
 1. Building Healthbar: https://www.youtube.com/watch?v=Wh2kVSPi_sE&t=454s
 2. Bouncing animation: 
+3. Animation: https://unused-css.com/blog/css-shake-animation/
 */
