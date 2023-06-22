@@ -11,6 +11,7 @@ const colorOne = "#ff9933"; //to refactor
 const colorTwo = "#4700b3" //to refactor
 let potatoPowerupTarget = "";
 const top_height = document.querySelector(".top").offsetHeight;
+let powerupInterval;
 
 //=====================
 // Create HTML elements
@@ -303,7 +304,7 @@ const resetValues = (potato) => {
     potato.hp = potato.maxHp;
     potato.healthBar.updateHealth(potato.maxHp);
     potato.powerup = "";
-    potato.powerupDiv = "";
+    potato.powerup.imgDiv = "";
     potato.resetPerfectCombo();
     potato.numRounds = 0;
 }
@@ -410,6 +411,7 @@ const EventHandlers = {
         
         const powerupKey = "h";
         if(hasPowerup && input === powerupKey ){
+            //handlePowerupCollision = false
             console.log(potatoPowerupTarget.id + "got the powerup!"); //BUG HERE
             potatoPowerupTarget.powerup = latestPowerup;
             //display powerup
@@ -422,10 +424,15 @@ const EventHandlers = {
             potatoDiv.appendChild(potatoPowerupDiv);
             potatoPowerupDiv.append(potatoPowerupImg);
             //remove powerup from container
+            //have to destroy the current powerup
             document.querySelector(".powerup").remove();
+            clearInterval(powerupInterval);
+            potatoPowerupTarget = "";
             latestPowerup = "";
+
             //after storing in potato, reinitiate powerup
             initPowerup();
+            //make handlePowerupCollision = true
             hasPowerup = false;  
         }
 
@@ -725,22 +732,22 @@ const Powerup = class {
         //console.log(1);
         this.updateColor();
         this.imgDiv.style.position = 'absolute';
-        setInterval((() => this.frame(this)), 10); //run frame every 5 ms
+        powerupInterval = setInterval((() => this.frame(this)), 5); //run frame every 5 ms
         hasPowerup = true;  
         latestPowerup = this;
     }
 
     updateColor() {
-        //select random potato
-        //console.log(2);
         const random = Math.floor((Math.random() * 2));
         potatoPowerupTarget = potatoes[random]; //select random potato
         this.imgDiv.style.borderColor = potatoPowerupTarget.color;
-        //console.log("3." + JSON.stringify(potatoPowerupTarget));
+        console.log(JSON.stringify(potatoPowerupTarget));
     }
 
    handleCollision(powerup) {
-       // console.log("powerup properties: ", powerup.offsetHeight, powerup.offsetWidth,powerup.offsetLeft, powerup.offsetTop);
+        //if handlePowerupCollision is false, do not change the color
+
+        // console.log("powerup properties: ", powerup.offsetHeight, powerup.offsetWidth,powerup.offsetLeft, powerup.offsetTop);
         //let powerup_height = powerup.imgDiv.offsetHeight; 
         //offsetHeight returns the height of an element, including vertical padding and borders, as an integer
         //let powerup_width = powerup.imgDiv.offsetWidth;
@@ -758,6 +765,7 @@ const Powerup = class {
           powerup.xIncr = ~powerup.xIncr + 1;
           //xIncr += xIncr;
           powerup.updateColor();
+          console.log("hey1");
         }
         if (top <= 0 || top + powerup.height >= container_height) { //if doesnt got out of bound on bottom or on the top
           powerup.yIncr = ~powerup.yIncr + 1;
@@ -765,6 +773,7 @@ const Powerup = class {
           //yIncr += 1;
           powerup.updateColor();
           //console.log(4);
+          console.log("hey2");
         }
     }
 
@@ -823,11 +832,12 @@ const initPowerup = () =>{ //rename this?
         () => {
             potatoPowerupTarget = "";
             const randPowerup = powerups[Math.floor(Math.random() * powerups.length)];
-            const powerup = new Powerup(randPowerup.id, randPowerup.name, randPowerup.img, randPowerup.descr, randPowerup.func);
+            let powerup = new Powerup(randPowerup.id, randPowerup.name, randPowerup.img, randPowerup.descr, randPowerup.func);
             const container = document.querySelector(".powerupbg");
             container.appendChild(powerup.imgDiv);
             document.querySelector('.bottom').appendChild(container);
             powerup.init();
+            powerup = "";
         }    
         
     ,randDelay);
