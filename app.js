@@ -1,7 +1,8 @@
 
 //settings
-const attackPower = 1; //damage taken per attack
+const attackPower = 2; //damage taken per attack
 const keystrokeNum = 10; //determines how many keys you want before attacking
+const maxAttackPower = attackPower * keystrokeNum;
 const powerUpDurationLowerRange = 1;
 const powerUpDurationUpperRange = 5; //power up will appear every 1 - 5 s
 let hasPowerup = false;
@@ -9,6 +10,7 @@ let latestPowerup = "";
 const colorOne = "#ff9933"; //to refactor
 const colorTwo = "#4700b3" //to refactor
 let potatoPowerupTarget = "";
+const top_height = document.querySelector(".top").offsetHeight;
 
 //=====================
 // Create HTML elements
@@ -118,11 +120,15 @@ const Potato = class {
     constructor(id,color){
         this.id = id;
         this.color = color;
-        this.maxHp = 20;
+        this.maxHp = 100;
         this.hp = this.maxHp;
         this.attack = 0;
         this.keystrokeElementArr = [];
         this.activeKey = "";
+        this.numRounds = 0;
+        this.isPerfectCombo = true;
+        this.numPerfectCombo = 0;
+        this.multiplier = 1;
         this.div= "";
         this.powerup = ""; 
         this.powerupDiv = createDiv("potato-powerup","potato-powerup-" + this.id);
@@ -178,6 +184,34 @@ const Potato = class {
         return this._activeKey;
     }
 
+    set numRounds(numRounds){
+        this._numRounds = numRounds;
+    }
+    get numRounds(){
+        return this._numRounds;
+    }
+
+    set isPerfectCombo(isPerfectCombo){
+        this._isPerfectCombo = isPerfectCombo;
+    }
+    get isPerfectCombo(){
+        return this._isPerfectCombo;
+    }
+
+    set numPerfectCombo(numPerfectCombo){
+        this._numPerfectCombo = numPerfectCombo;
+    }
+    get numPerfectCombo(){
+        return this._numPerfectCombo;
+    }
+
+    set multiplier(multiplier){
+        this._multiplier = multiplier;
+    }
+    get multiplier(){
+        return this._multiplier;
+    }
+
     set div(div){
         this._div = div;
     }
@@ -212,9 +246,19 @@ const Potato = class {
         }else{
             this.powerup.func(this);
         }
-        //this.powerupDiv.remove();
     }
 
+    resetPerfectCombo(){
+        this.isPerfectCombo = false;
+        this.multiplier = 1;
+        this.numPerfectCombo = 0;
+    }
+
+    // checkBonus(){
+    //     let extraPoints = 0;
+    //     this._numRounds < 3 ? extraPoints = 0 : this._numRounds < 5 ? extraPoints = 10 : this._numRounds < 7 ? extraPoints = 20 : extraPoints = 30;
+    //     return extraPoints;
+    // }
 }
 
 const HealthBar = class {
@@ -238,7 +282,7 @@ const HealthBar = class {
     }
 
     updateHealth(hp){
-        if (hp < 0){hp = 0}
+        if (hp < 0){hp = 0} 
         this.health = hp;
         this.w = (hp/this.maxHp) * this.maxWidth;
     }
@@ -252,6 +296,10 @@ const potatoes = [potatoOne, potatoTwo]; //used for powerup functions
 const resetValues = (potato) => {
     potato.hp = potato.maxHp;
     potato.healthBar.updateHealth(potato.maxHp);
+    potato.powerup = "";
+    potato.powerupDiv = "";
+    potato.resetPerfectCombo();
+    potato.numRounds = 0;
 }
 
 
@@ -349,7 +397,6 @@ const EventHandlers = {
         const potatoOneKeys = {actionKeys: ["w","a","s","d"], finalKey: " ", powerupKey:"c"};
         const potatoTwoKeys = {actionKeys: ["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"], finalKey: "Enter", powerupKey: "/"};
         const input = event.key;
-        console.log(input);
         if (potatoOne.keystrokeElementArr.length > 1 && potatoOneKeys.actionKeys.includes(input)) { validateKey(potatoOne, input); } //if keys are arrows, or enter
         if (potatoTwo.keystrokeElementArr.length > 1 && potatoTwoKeys.actionKeys.includes(input)) { validateKey(potatoTwo, input); }
         if (potatoOne.keystrokeElementArr.length === 1 && potatoOneKeys.finalKey === input){attackOpponent(potatoOne,potatoTwo)}; //potato 1 attacks potato 2
@@ -357,9 +404,8 @@ const EventHandlers = {
         
         const powerupKey = "h";
         if(hasPowerup && input === powerupKey ){
-            console.log(potatoPowerupTarget.id + "got the powerup!"); //success! correct potato shown
+            console.log(potatoPowerupTarget.id + "got the powerup!"); //BUG HERE
             potatoPowerupTarget.powerup = latestPowerup;
-            //console.log( "potato-" + potatoPowerupTarget.id + " got " + potatoPowerupTarget.powerup.name);
             //display powerup
             potatoPowerupTarget.powerupDiv.innerHTML= "";
             const potatoPowerupDiv = potatoPowerupTarget.powerupDiv;
@@ -381,14 +427,7 @@ const EventHandlers = {
         if(potatoTwoKeys.powerupKey === input ){potatoTwo.usePowerup();}   
         //bug: powerups get mixed up between the potatoes ):
 
-    },
-    // onKeydownPowerup: (event) => {
-    //     const input = event.key;
-    //     const powerupKey = "h";
-    //     if(input === powerupKey ){
-    //         console.log(potatoPowerupTarget.id + "got the powerup!");
-    //     }
-    // }
+    }
 }
 
 
@@ -401,63 +440,88 @@ const validateKey = (potato, input) =>{
     input === potato.activeKey ? setCorrect(potato, potato.keystrokeElementArr) : setMissed(potato, potato.keystrokeElementArr);
 }
 
+//count if correct == 9 
 const setCorrect = (potato, keystrokeElementArr) => {
     const currentKeystroke = keystrokeElementArr[0];
     currentKeystroke.dataset.keystrokeStatus = "correct";
     potato.attack += attackPower;
-    document.querySelector(`#damage-points-${potato.id}`).children[1].innerText = potato.attack; //updates damage box
+    const damageValueElement = document.querySelector(`#damage-points-${potato.id}`).children[1];
+    damageValueElement.innerText = potato.attack; //updates damage box
+    scaleAnimate(damageValueElement)
     const nextKeystroke = keystrokeElementArr[1];
-    console.log("next keystroke ", nextKeystroke);
     potato.activeKey = nextKeystroke.dataset.keystroke;
-    console.log("new active key: " + potato.activeKey);
     nextKeystroke.dataset.keystrokeStatus = "active";
     potato.keystrokeElementArr.shift();
 }
 
+
 const setMissed = (potato, keystrokeElementArr) => {
+    potato.resetPerfectCombo();
     const currentKeystroke = keystrokeElementArr[0];
     currentKeystroke.dataset.keystrokeStatus = "missed";
     potato.keystrokeElementArr = keystrokeElementArr;
     //move on to the next key
     const nextKeystroke = keystrokeElementArr[1];
     potato.activeKey = nextKeystroke.dataset.keystroke;
-    console.log("new active key: " + potato.activeKey);
     nextKeystroke.dataset.keystrokeStatus = "active";
     keystrokeElementArr.shift(); 
 }
 
+
 const attackOpponent = (attackingPotato, receivingPotato) => {
     //reduce receiving potato hp
     attackingPotato.attack += attackPower; //the last attack
+    document.querySelector("#damage-points-" + attackingPotato.id ).children[1].innerText = attackingPotato.attack;
     
     //check if got attackup powerup, increase final attack by 10%
-    console.log("attacking potato:" + attackingPotato.id);
-    console.log("attacking potato powerup:" + JSON.stringify(attackingPotato.powerup)); 
+    // console.log("attacking potato:" + attackingPotato.id);
+    // console.log("attacking potato powerup:" + JSON.stringify(attackingPotato.powerup)); 
 
-    console.log("receiving potato:" + receivingPotato.id);
-    console.log("receiving potato powerup:" + receivingPotato.powerup.activated);
+    // console.log("receiving potato:" + receivingPotato.id);
+    // console.log("receiving potato powerup:" + receivingPotato.powerup.activated);
     if(attackingPotato.powerup.activated ==="Attack Up"){
-        attackingPotato.attack = (attackingPotato.attack/100) * 120;
+        attackingPotato.attack = Math.round((attackingPotato.attack/100) * 120);
         attackingPotato.powerupDiv.remove();
         attackingPotato.powerup="";
         //console.log("attack! :" + attackingPotato.attack);
     }
     if(receivingPotato.powerup.activated ==="Shield"){
-        attackingPotato.attack = (attackingPotato.attack/100) * 80;
+        attackingPotato.attack = Math.round((attackingPotato.attack/100) * 80);
         receivingPotato.powerupDiv.remove();
         receivingPotato.powerup="";
         //console.log("attack! :" + attackingPotato.attack);
     }
 
+    attackingPotato.isPerfectCombo && attackingPotato.numPerfectCombo++;
+
+    //determine multiplier
+    //if 1 set complete x 1.5
+    if(attackingPotato.numPerfectCombo == 1){
+        attackingPotato.multiplier = 1.5;
+    }else if(attackingPotato.numPerfectCombo == 3){
+        attackingPotato.multiplier = 2.5;
+    }else if(attackingPotato.numPerfectCombo == 5){
+        attackingPotato.multiplier = 3;
+    }
+
+    //console.log("multiplier: " + attackingPotato.multiplier);
+
     //show attack!
-    showBigDamage(attackingPotato.attack,receivingPotato);
+    attackingPotato.attack = Math.round(attackingPotato.attack * attackingPotato.multiplier);
+    console.log("Checking if attack is a round number: " + attackingPotato.attack);
+    showBigDamage(attackingPotato.attack,receivingPotato,attackingPotato);
+    attackingPotato.numRounds++; 
 
     //reduce hp in healthBar
     receivingPotato.hp -= attackingPotato.attack;
     receivingPotato.healthBar.updateHealth(receivingPotato.hp);
     attackingPotato.attack = 0; //set to 0 again for next sequence
+    //for a certain number of rounds, award points
+    //console.log("Attacking potato rounds: " + attackingPotato.numRounds);
+    //console.log("Attacking potato bonus: " + attackingPotato.checkBonus());
+    //attackingPotato.attack += attackingPotato.checkBonus();
+    
     if(receivingPotato.hp <= 0) {
-        //console.log("game ends!");
         gameOverScreen(attackingPotato);
     }else{
         clearKeystrokes(attackingPotato);
@@ -473,6 +537,8 @@ const attackOpponent = (attackingPotato, receivingPotato) => {
 const setKeystrokes = (keystrokeNum,potato) => {
     const potatoIndex = potato.id;
     const keySequence = document.querySelector("#key-sequence-" + potatoIndex);
+    //keySequence.classList.add("slide-in-animate");
+    slideInAnimate(keySequence);
     const keystrokeArr = []; 
     const possibleKeys = [ {keystroke: ["w","ArrowUp"], icon: "./img/arrow-up.svg"}, {keystroke: ["s","ArrowDown"], icon: "./img/arrow-down.svg"}, {keystroke: ["a","ArrowLeft"], icon: "./img/arrow-left.svg"}, {keystroke: ["d","ArrowRight"], icon: "./img/arrow-right.svg"} ];
     for(let i = 1 ; i <= keystrokeNum; i++){
@@ -496,7 +562,6 @@ const setKeystrokes = (keystrokeNum,potato) => {
         keystrokeElement.appendChild(keyIconElement);
         keystrokeArr.push(keystrokeElement);
     }
-    //console.log(potato.keystrokeElementArr);
     potato.keystrokeElementArr = keystrokeArr;
     keystrokeArr.forEach(keystroke => keySequence.appendChild(keystroke));
 }   
@@ -504,7 +569,8 @@ const setKeystrokes = (keystrokeNum,potato) => {
 const clearKeystrokes = (potato) => {
     const keySequence = document.querySelector("#key-sequence-" + potato.id);
     keySequence.innerHTML = "";
-    document.querySelector("#damage-points-" + potato.id ).children[1].innerText = 0;
+    document.querySelector("#damage-points-" + potato.id ).children[1].innerText = potato.attack;
+    potato.isPerfectCombo = true;
 }
 
 
@@ -533,6 +599,11 @@ const Powerup = class {
         this.activated = "";
         this.xIncr = 1;
         this.yIncr = 3;
+        this.height = this.imgDiv.offsetHeight;
+        this.width = this.imgDiv.offsetWidth;
+        this.left = this.imgDiv.offsetLeft; 
+        this.top = this.imgDiv.offsetTop - top_height;
+        this.parentContainer = document.querySelector(".powerupbg");
     }
 
     set id(id){ 
@@ -585,10 +656,51 @@ const Powerup = class {
         this._yIncr = yIncr;
     }
     get yIncr(){
-        return this._yIncr
+        return this._yIncr;
     }
 
+    set height(height){
+        this._height = height;
+    }
+    get height(){
+        return this._height;
+    }
+    set width(width){
+        this._width = width;
+    }
+    get width(){
+        return this._width;
+    }
+    set left(left){
+        this._left = left;
+    }
+    get left(){
+        return this._left;
+    }
+    set top(top){
+        this._top = top;
+    }
+    get top(){
+        return this._top;
+    }
+    set parentContainer(parentContainer){
+        this._parentContainer = parentContainer;
+    }
+    get top(){
+        return this._parentContainer;
+    }
+
+    // initializePowerUpDimensions(){
+    //     this.height = this.imgDiv.offsetHeight;
+    //     this.width = this.imgDiv.offsetWidth;
+    //     this.left = this.imgDiv.offsetLeft; 
+    //     this.top = this.imgDiv.offsetTop - top_height;
+    // }
+
+
+
     init() {
+        //console.log(1);
         this.updateColor();
         this.imgDiv.style.position = 'absolute';
         setInterval((() => this.frame(this)), 10); //run frame every 5 ms
@@ -597,42 +709,40 @@ const Powerup = class {
     }
 
     updateColor() {
-        //const colors = ["#ff9933","#4700b3"]; 
-        //const random = Math.floor((Math.random() * 2));
-        //let color = colors[random];
-        //potatoPowerupTarget = potatoes.filter(potato => potato.color === color)[0];
         //select random potato
+        //console.log(2);
         const random = Math.floor((Math.random() * 2));
-        potatoPowerupTarget = potatoes[random];
+        potatoPowerupTarget = potatoes[random]; //select random potato
         this.imgDiv.style.borderColor = potatoPowerupTarget.color;
-
+        //console.log("3." + JSON.stringify(potatoPowerupTarget));
     }
 
    handleCollision(powerup) {
        // console.log("powerup properties: ", powerup.offsetHeight, powerup.offsetWidth,powerup.offsetLeft, powerup.offsetTop);
-        let powerup_height = powerup.imgDiv.offsetHeight; 
+        //let powerup_height = powerup.imgDiv.offsetHeight; 
         //offsetHeight returns the height of an element, including vertical padding and borders, as an integer
-        let powerup_width = powerup.imgDiv.offsetWidth;
+        //let powerup_width = powerup.imgDiv.offsetWidth;
         let left = powerup.imgDiv.offsetLeft; 
         //returns the number of pixels that the upper left corner of the current element is offset to the left within the HTMLElement.offsetParent node.
         const top_height = document.querySelector(".top").offsetHeight;
         let top = powerup.imgDiv.offsetTop - top_height;
         
         const container = document.querySelector(".powerupbg");
-        let win_height = container.offsetHeight; //window.innerHeight;
-        let win_width = container.offsetWidth//window.innerWidth;
+        let container_height = container.offsetHeight; //window.innerHeight;
+        let container_width = container.offsetWidth//window.innerWidth;
         // console.log("window properties: ", win_height,win_width);
 
-        if (left <= 0 || left + powerup_width >= win_width) { //if doesnt got out of bound on left or on the right
+        if (left <= 0 || left + powerup.width >= container_width) { //if doesnt got out of bound on left or on the right
           powerup.xIncr = ~powerup.xIncr + 1;
           //xIncr += xIncr;
           powerup.updateColor();
         }
-        if (top <= 0 || top + powerup_height >= win_height) { //if doesnt got out of bound on bottom or on the top
+        if (top <= 0 || top + powerup.height >= container_height) { //if doesnt got out of bound on bottom or on the top
           powerup.yIncr = ~powerup.yIncr + 1;
           //console.log("test2" + yIncr);
           //yIncr += 1;
           powerup.updateColor();
+          //console.log(4);
         }
     }
 
@@ -642,8 +752,8 @@ const Powerup = class {
         //let top_height = document.querySelector(".top").offsetHeight;
         powerup.imgDiv.style.top = powerup.imgDiv.offsetTop + powerup.yIncr + "px";
         powerup.imgDiv.style.left = powerup.imgDiv.offsetLeft + powerup.xIncr + "px";
-       // console.log("x", powerup.offsetTop);
-       // console.log("y", powerup.offsetLeft)
+        //console.log("x", powerup.yIncr);
+        //console.log("y", powerup.xIncr)
     }
 
 }
@@ -653,7 +763,6 @@ const Powerup = class {
 
 const initPowerup = () =>{ //rename this?
     //select random powerup
-    console.log("hi");
     const powerups = [
         {
         id: 0,
@@ -690,6 +799,7 @@ const initPowerup = () =>{ //rename this?
     console.log("randDelay:" + randDelay);
     setTimeout(
         () => {
+            potatoPowerupTarget = "";
             const randPowerup = powerups[Math.floor(Math.random() * powerups.length)];
             const powerup = new Powerup(randPowerup.id, randPowerup.name, randPowerup.img, randPowerup.descr, randPowerup.func);
             const container = document.querySelector(".powerupbg");
@@ -708,27 +818,24 @@ const initPowerup = () =>{ //rename this?
 // }
 
 const firstAid = (potato) => {
-    console.log("potato used first aid!");
     const max = 100;
     const min = 20;
-    const addHealth = Math.floor(Math.random()*(max-min)) + min;
+    const addHealth = potato.hp + Math.floor(Math.random()*(max-min)) + min;
+    console.log(addHealth);
     potato.healthBar.updateHealth(addHealth);
     potato.powerup = "";
     potato.powerupDiv.remove();
 } 
 
-const shield = (potato) => {
-    console.log("potato used shield!");
+const shield = (potato) => { //need to refactor
     activatePowerup(potato);
 }
 
 const timeWarp = (potato) => {
-    console.log("potato used timewarp!");
     activatePowerup(potato);
 }
 
 const attackUp = (potato) => {
-    console.log("potato used attack up!");
     activatePowerup(potato);
 }
 
@@ -736,7 +843,6 @@ const activatePowerup = (potato) => {
     potato.powerup.activated = potato.powerup.name;
     document.querySelector("#potato-powerup-"+potato.id).children[0].style.borderColor = "red";
 }
-
 
 /*
 ---------------
@@ -753,40 +859,57 @@ const showCollectedDmg = (damage) => {
     //p.remove();
 }
 
-const showBigDamage = (damage,receivingPotato) => {
-    //show hit effect image next to receiving potato
-    //show dmg
-   // const src = "./img/effect-hit.png";
+const showBigDamage = (damage,receivingPotato, attackingPotato) => {
     const potatoAvatar =  document.querySelector("#potato-avatar-"+receivingPotato.id);
     const dmgEffect = document.querySelector("#dmg-effect-"+receivingPotato.id);//createImg("dmg-effect",src,"dmg-effect-"+receivingPotato.id);
     showElement(dmgEffect);
-    //potatoOne.div.appendChild(imgContainer);
-    //receivingPotato.div.append(imgContainer);
-        //append effect (to change this, still testing)
-    // const effectSrc = "./img/effect-hit.png";
-    // const imgContainer = createImg("dmg-effect",effectSrc,"dmg-effect-"+potato.id);
-    // potatoAvatarDiv.appendChild(imgContainer);
 
-    const p = document.createElement("p");
-    p.className = "big-dmg";
-    p.innerText = "-" + damage;
-    potatoAvatar.append(p);
+    const damageElement = document.createElement("p");
+    damageElement.className = "big-dmg";
+    damageElement.innerText = "-" + damage;
+    potatoAvatar.append(damageElement);
+
+    console.log("testing multiplier value: " + attackingPotato.multiplier);
+    const multiplierElement = document.createElement("p");
+    multiplierElement.className="multiplier";
+    if(attackingPotato.multiplier > 1){
+        multiplierElement.innerText ="Perfect! " + attackingPotato.multiplier + " multiplier damage" ;
+        potatoAvatar.append(multiplierElement);
+    }
+    // }else if (multiplierElement.innerText.length > 0) { // reset multiplier element
+    //     potatoAvatar.remove(multiplierElement);
+    // }
 
     setTimeout( () => {
         dmgEffect.classList.add("hidden");
-        p.remove();
+        multiplierElement.remove();
+        damageElement.remove();
     },1000);
+}
+
+function slideInAnimate(element){ 
+    element.classList.add('slide-in-animate');
+    setTimeout(()=> {
+      element.classList.remove('slide-in-animate')
+    },500)
+}
+
+function scaleAnimate(element){ 
+    element.classList.add('scale-collectDamage');
+    setTimeout(()=> {
+      element.classList.remove('scale-collectDamage')
+    },500)
 }
 
 
 //check whether sequence is a perfect combination
 //if perfect combination, increase damage
-//show this effect
+//show this effect  (DONE but havent shown effect)
 
 
 //check if on nth round on keyboard sequence
 //if on nth round, reflect multiplier effect
-//show multiplier effect
+//show multiplier effect (DONE but havent shown effect)
 
 //fix bug on powerup
 
