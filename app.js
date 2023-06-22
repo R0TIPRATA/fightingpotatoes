@@ -23,6 +23,13 @@ const createDiv = (className, id) => {
     return div;
 }
 
+const createP = (className, id) => {
+    const p = document.createElement("p");
+    p.classList.add(className);
+    if (id) p.id = id;
+    return p;
+}
+
 const createImg = (className, src, id) => {
     const img = document.createElement("img");
     img.classList.add(className);
@@ -32,8 +39,7 @@ const createImg = (className, src, id) => {
 }
 
 const createButton = (className) => {
-    const btn = document.createElement("button");
-    //btn.innerText = className;
+    const btn = document.createElement("button")
     btn.classList.add(className);
     return btn;
 }
@@ -481,14 +487,14 @@ const attackOpponent = (attackingPotato, receivingPotato) => {
     // console.log("receiving potato powerup:" + receivingPotato.powerup.activated);
     if(attackingPotato.powerup.activated ==="Attack Up"){
         attackingPotato.attack = Math.round((attackingPotato.attack/100) * 120);
-        attackingPotato.powerupDiv.remove();
-        attackingPotato.powerup="";
+        // attackingPotato.powerupDiv.remove();
+        // attackingPotato.powerup="";
         //console.log("attack! :" + attackingPotato.attack);
     }
     if(receivingPotato.powerup.activated ==="Shield"){
         attackingPotato.attack = Math.round((attackingPotato.attack/100) * 80);
-        receivingPotato.powerupDiv.remove();
-        receivingPotato.powerup="";
+        // receivingPotato.powerupDiv.remove();
+        // receivingPotato.powerup="";
         //console.log("attack! :" + attackingPotato.attack);
     }
 
@@ -515,7 +521,23 @@ const attackOpponent = (attackingPotato, receivingPotato) => {
     //reduce hp in healthBar
     receivingPotato.hp -= attackingPotato.attack;
     receivingPotato.healthBar.updateHealth(receivingPotato.hp);
-    attackingPotato.attack = 0; //set to 0 again for next sequence
+    attackingPotato.attack = 0;
+
+
+    if(attackingPotato.powerup.activated ==="Attack Up"){
+        attackingPotato.powerupDiv.remove();
+        attackingPotato.powerup="";
+        //console.log("attack! :" + attackingPotato.attack);
+    }
+    if(receivingPotato.powerup.activated ==="Shield"){
+        receivingPotato.powerupDiv.remove();
+        receivingPotato.powerup="";
+        //console.log("attack! :" + attackingPotato.attack);
+    }
+    
+
+
+    //set to 0 again for next sequence
     //for a certain number of rounds, award points
     //console.log("Attacking potato rounds: " + attackingPotato.numRounds);
     //console.log("Attacking potato bonus: " + attackingPotato.checkBonus());
@@ -860,6 +882,46 @@ const showCollectedDmg = (damage) => {
 }
 
 const showBigDamage = (damage,receivingPotato, attackingPotato) => {
+    const dmgEffect = document.querySelector("#dmg-effect-"+receivingPotato.id);
+    showElement(dmgEffect);
+    const potatoAvatar =  document.querySelector("#potato-avatar-"+receivingPotato.id);
+    //create a parent div
+    const parent = createDiv("dmg-details","dmg-details-"+receivingPotato.id);
+
+    //create damage points element
+    const damagePointsElement = createP("dmg-points");
+    damagePointsElement.innerText = "-" + damage;
+    parent.appendChild(damagePointsElement);
+
+    //if contain multiplier, show multiplier text
+    const multiplierElement = createDiv("show-multiplier-text");
+    if(attackingPotato.multiplier > 1){
+        const subText1 = createP("subtext1");
+        const subText2 = createP("subtext2");
+        subText1.innerText = "Perfect!"; 
+        subText2.innerText = attackingPotato.multiplier + " multiplier damage"; 
+        multiplierElement.append(subText1,subText2);
+        parent.appendChild(multiplierElement);
+    }
+
+    //if there is powerup applied, include
+    const powerupEffectElement = createP("show-powerup-text");
+    if(receivingPotato.powerup.activated === "Shield"){
+        powerupEffectElement.innerText = "Shield used! -20% damage";
+        parent.appendChild(powerupEffectElement);
+    }else if(attackingPotato.powerup.activated === "Attack Up"){
+        powerupEffectElement.innerText = "Attack up used! +20% damage";
+        parent.appendChild(powerupEffectElement);
+    }
+
+    potatoAvatar.append(parent);
+    setTimeout( () => {
+        dmgEffect.classList.add("hidden");
+        parent.remove();
+    },1000);
+}
+
+const showBigDamageOriginal = (damage,receivingPotato, attackingPotato) => {
     const potatoAvatar =  document.querySelector("#potato-avatar-"+receivingPotato.id);
     const dmgEffect = document.querySelector("#dmg-effect-"+receivingPotato.id);//createImg("dmg-effect",src,"dmg-effect-"+receivingPotato.id);
     showElement(dmgEffect);
@@ -869,23 +931,32 @@ const showBigDamage = (damage,receivingPotato, attackingPotato) => {
     damageElement.innerText = "-" + damage;
     potatoAvatar.append(damageElement);
 
-    console.log("testing multiplier value: " + attackingPotato.multiplier);
+    //console.log("testing multiplier value: " + attackingPotato.multiplier);
     const multiplierElement = document.createElement("p");
-    multiplierElement.className="multiplier";
+    multiplierElement.className="show-multiplier-text";
     if(attackingPotato.multiplier > 1){
         multiplierElement.innerText ="Perfect! " + attackingPotato.multiplier + " multiplier damage" ;
         potatoAvatar.append(multiplierElement);
     }
-    // }else if (multiplierElement.innerText.length > 0) { // reset multiplier element
-    //     potatoAvatar.remove(multiplierElement);
-    // }
+    
+    const powerupEffectElement = document.createElement("p");
+    powerupEffectElement.className="show-powerup-text";
+    if(receivingPotato.powerup.activated === "Shield"){
+        powerupEffectElement.innerText = "Shield used! -20% damage";
+        potatoAvatar.append(powerupEffectElement);
+    }else if(attackingPotato.powerup.activated === "Attack Up"){
+        powerupEffectElement.innerText = "Attack up used! +20% damage";
+        potatoAvatar.append(powerupEffectElement);
+    }
 
-    setTimeout( () => {
-        dmgEffect.classList.add("hidden");
-        multiplierElement.remove();
-        damageElement.remove();
-    },1000);
+    // setTimeout( () => {
+    //     dmgEffect.classList.add("hidden");
+    //     multiplierElement.remove();
+    //     damageElement.remove();
+    //     powerupEffectElement.remove();
+    // },1000);
 }
+
 
 function slideInAnimate(element){ 
     element.classList.add('slide-in-animate');
