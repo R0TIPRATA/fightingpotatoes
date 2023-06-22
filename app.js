@@ -248,6 +248,12 @@ const Potato = class {
         }
     }
 
+    resetPerfectCombo(){
+        this.isPerfectCombo = false;
+        this.multiplier = 1;
+        this.numPerfectCombo = 0;
+    }
+
     // checkBonus(){
     //     let extraPoints = 0;
     //     this._numRounds < 3 ? extraPoints = 0 : this._numRounds < 5 ? extraPoints = 10 : this._numRounds < 7 ? extraPoints = 20 : extraPoints = 30;
@@ -292,8 +298,7 @@ const resetValues = (potato) => {
     potato.healthBar.updateHealth(potato.maxHp);
     potato.powerup = "";
     potato.powerupDiv = "";
-    potato.numPerfectCombo = 0;
-    potato.isPerfectCombo = true;
+    potato.resetPerfectCombo();
     potato.numRounds = 0;
 }
 
@@ -451,8 +456,7 @@ const setCorrect = (potato, keystrokeElementArr) => {
 
 
 const setMissed = (potato, keystrokeElementArr) => {
-    potato.isPerfectCombo = false;
-    potato.multiplier = 1;
+    potato.resetPerfectCombo();
     const currentKeystroke = keystrokeElementArr[0];
     currentKeystroke.dataset.keystrokeStatus = "missed";
     potato.keystrokeElementArr = keystrokeElementArr;
@@ -462,6 +466,7 @@ const setMissed = (potato, keystrokeElementArr) => {
     nextKeystroke.dataset.keystrokeStatus = "active";
     keystrokeElementArr.shift(); 
 }
+
 
 const attackOpponent = (attackingPotato, receivingPotato) => {
     //reduce receiving potato hp
@@ -504,7 +509,7 @@ const attackOpponent = (attackingPotato, receivingPotato) => {
     //show attack!
     attackingPotato.attack = Math.round(attackingPotato.attack * attackingPotato.multiplier);
     console.log("Checking if attack is a round number: " + attackingPotato.attack);
-    showBigDamage(attackingPotato.attack,receivingPotato);
+    showBigDamage(attackingPotato.attack,receivingPotato,attackingPotato);
     attackingPotato.numRounds++; 
 
     //reduce hp in healthBar
@@ -565,6 +570,7 @@ const clearKeystrokes = (potato) => {
     const keySequence = document.querySelector("#key-sequence-" + potato.id);
     keySequence.innerHTML = "";
     document.querySelector("#damage-points-" + potato.id ).children[1].innerText = potato.attack;
+    potato.isPerfectCombo = true;
 }
 
 
@@ -694,7 +700,7 @@ const Powerup = class {
 
 
     init() {
-        console.log(1);
+        //console.log(1);
         this.updateColor();
         this.imgDiv.style.position = 'absolute';
         setInterval((() => this.frame(this)), 10); //run frame every 5 ms
@@ -704,11 +710,11 @@ const Powerup = class {
 
     updateColor() {
         //select random potato
-        console.log(2);
+        //console.log(2);
         const random = Math.floor((Math.random() * 2));
         potatoPowerupTarget = potatoes[random]; //select random potato
         this.imgDiv.style.borderColor = potatoPowerupTarget.color;
-        console.log("3." + JSON.stringify(potatoPowerupTarget));
+        //console.log("3." + JSON.stringify(potatoPowerupTarget));
     }
 
    handleCollision(powerup) {
@@ -736,7 +742,7 @@ const Powerup = class {
           //console.log("test2" + yIncr);
           //yIncr += 1;
           powerup.updateColor();
-          console.log(4);
+          //console.log(4);
         }
     }
 
@@ -853,28 +859,31 @@ const showCollectedDmg = (damage) => {
     //p.remove();
 }
 
-const showBigDamage = (damage,receivingPotato) => {
-    //show hit effect image next to receiving potato
-    //show dmg
-   // const src = "./img/effect-hit.png";
+const showBigDamage = (damage,receivingPotato, attackingPotato) => {
     const potatoAvatar =  document.querySelector("#potato-avatar-"+receivingPotato.id);
     const dmgEffect = document.querySelector("#dmg-effect-"+receivingPotato.id);//createImg("dmg-effect",src,"dmg-effect-"+receivingPotato.id);
     showElement(dmgEffect);
-    //potatoOne.div.appendChild(imgContainer);
-    //receivingPotato.div.append(imgContainer);
-        //append effect (to change this, still testing)
-    // const effectSrc = "./img/effect-hit.png";
-    // const imgContainer = createImg("dmg-effect",effectSrc,"dmg-effect-"+potato.id);
-    // potatoAvatarDiv.appendChild(imgContainer);
 
-    const p = document.createElement("p");
-    p.className = "big-dmg";
-    p.innerText = "-" + damage;
-    potatoAvatar.append(p);
+    const damageElement = document.createElement("p");
+    damageElement.className = "big-dmg";
+    damageElement.innerText = "-" + damage;
+    potatoAvatar.append(damageElement);
+
+    console.log("testing multiplier value: " + attackingPotato.multiplier);
+    const multiplierElement = document.createElement("p");
+    multiplierElement.className="multiplier";
+    if(attackingPotato.multiplier > 1){
+        multiplierElement.innerText ="Perfect! " + attackingPotato.multiplier + " multiplier damage" ;
+        potatoAvatar.append(multiplierElement);
+    }
+    // }else if (multiplierElement.innerText.length > 0) { // reset multiplier element
+    //     potatoAvatar.remove(multiplierElement);
+    // }
 
     setTimeout( () => {
         dmgEffect.classList.add("hidden");
-        p.remove();
+        multiplierElement.remove();
+        damageElement.remove();
     },1000);
 }
 
