@@ -9,12 +9,29 @@
     }
 }
 
-@keyframes slideIn {
+@keyframes collectDamage {
     0%{
-        transform: "";
+        transform: scale(0.4);
+        transform: translateY(0px);
+    }
+    50%{
+        transform: scale(3.0);
+        transform: translateY(10px);
     }
     100%{
-        transform: "";
+        transform: scale(3.0);
+        transform: translateY(0px);
+    }
+}
+
+@keyframes slideIn {
+    0%{
+        transform: translateX(-20px);
+        opacity:20%;
+    }
+    100%{
+        transform: scale(2);
+        transform: translateX(0);
     }
 }
 
@@ -23,7 +40,7 @@
         transform: scale(0.4);
     }
     100%{
-        transform: scale(1.8);
+        transform: scale(1.4);
         opacity: 20%
     }
 }
@@ -36,12 +53,22 @@
     100% { transform: translateX(0) }
 }
 
+.slide-in-animate{
+    animation: slideIn 0.2s ease-in;
+}
+
+.scale-collectDamage{
+    animation: collectDamage 0.2s ease-in;
+}
+
+
 body{
     font-family: 'Darumadrop One', cursive;
 }
 
 p{
     margin: 0px;
+    display: inline-block;
 }
 
 
@@ -170,6 +197,7 @@ button:hover{
     width:80%;
 }
 
+
 #action-row-0{
     background-color: #ffc787;
 }
@@ -215,12 +243,6 @@ canvas {
     display: block;
     margin: 0 auto;
     border: solid 6px #444;
-}
-
-.powerup-bg{
-    display:relative;
-    width: 800px;
-    height: 800px;
 }
 
 .potato-powerup-img{
