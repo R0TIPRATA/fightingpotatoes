@@ -12,6 +12,7 @@ const colorTwo = "#4700b3" //to refactor
 let potatoPowerupTarget = "";
 const top_height = document.querySelector(".top").offsetHeight;
 let powerupInterval;
+let gameOverInterval;
 
 //=====================
 // Create HTML elements
@@ -371,6 +372,7 @@ const playScreen = () => {
 
 const gameOverScreen = (winner) =>{
     clearInterval(powerupInterval);
+    clearTimeout(gameOverInterval);
     document.removeEventListener("keydown",EventHandlers.onKeydown);
     //clear elements not needed
     const top = document.querySelector(".top");
@@ -424,7 +426,13 @@ const EventHandlers = {
             //potatoPowerupImg.style.width = "20px";
             const potatoDiv = document.querySelector("#potato-" + potatoPowerupTarget.id );
             potatoDiv.appendChild(potatoPowerupDiv);
-            potatoPowerupDiv.append(potatoPowerupImg);
+            //powerupDiv should append message element as well
+            let usePowerupKey;
+            potatoPowerupTarget.id === 0 ? usePowerupKey = "c" : usePowerupKey = "/";
+            const tipDiv = createDiv("use-powerup-tip", "use-powerup-tip-" + potatoPowerupTarget.id);
+            tipDiv.innerHTML = `Press "${usePowerupKey}" key to use powerup.`
+
+            potatoPowerupDiv.append(potatoPowerupImg,tipDiv);
             //remove powerup from container
             //have to destroy the current powerup
             document.querySelector(".powerup-div").remove();
@@ -522,7 +530,7 @@ const attackOpponent = (attackingPotato, receivingPotato) => {
     //console.log("multiplier: " + attackingPotato.multiplier);
 
     //show attack!
-    attackAnimate(attackingPotato.div);
+    attackingPotato.id == 0 ? moveRightAnimate(attackingPotato.div) : moveLeftAnimate(attackingPotato.div);
     attackingPotato.attack = Math.round(attackingPotato.attack * attackingPotato.multiplier);
     //console.log("Checking if attack is a round number: " + attackingPotato.attack);
     showBigDamage(attackingPotato.attack,receivingPotato,attackingPotato);
@@ -554,7 +562,8 @@ const attackOpponent = (attackingPotato, receivingPotato) => {
     //attackingPotato.attack += attackingPotato.checkBonus();
     
     if(receivingPotato.hp <= 0) {
-        gameOverScreen(attackingPotato);
+        gameOverInterval = setTimeout(() => gameOverScreen(attackingPotato),1000);
+        //clearTimeout(timeOut);
     }else{
         clearKeystrokes(attackingPotato);
         setKeystrokes(10,attackingPotato);
@@ -887,6 +896,10 @@ const attackUp = (potato) => {
 
 const activatePowerup = (potato) => {
     potato.powerup.activated = potato.powerup.name;
+    const tipDiv = document.querySelector("#use-powerup-tip-" + potato.id)
+    if(potato.powerup.activated !== "First Aid"){
+        tipDiv.innerHTML = potato.powerup.activated + " is in effect!"
+    }
     document.querySelector("#potato-powerup-"+potato.id).children[0].style.borderColor = "red";
 }
 
@@ -996,10 +1009,17 @@ function scaleAnimate(element){
     },500)
 }
 
-function attackAnimate(element){ 
-    element.classList.add('attack-animate');
+function moveRightAnimate(element){ 
+    element.classList.add('move-right-animate');
     setTimeout(()=> {
-      element.classList.remove('attack-animate')
+      element.classList.remove('move-right-animate')
+    },500)
+}
+
+function moveLeftAnimate(element){ 
+    element.classList.add('move-left-animate');
+    setTimeout(()=> {
+      element.classList.remove('move-left-animate')
     },500)
 }
 
