@@ -539,7 +539,8 @@ const attackOpponent = (attackingPotato, receivingPotato) => {
     //reduce hp in healthBar
     receivingPotato.hp -= attackingPotato.attack;
     receivingPotato.healthBar.updateHealth(receivingPotato.hp);
-    attackingPotato.attack = 0;
+    //attackingPotato.attack = 0;
+    //setTimeout(() => {attackingPotato.attack = 0} , 1000);
 
 
     if(attackingPotato.powerup.activated ==="Attack Up"){
@@ -562,11 +563,14 @@ const attackOpponent = (attackingPotato, receivingPotato) => {
     //attackingPotato.attack += attackingPotato.checkBonus();
     
     if(receivingPotato.hp <= 0) {
-        gameOverInterval = setTimeout(() => gameOverScreen(attackingPotato),1000);
+        gameOverInterval = setTimeout(() => gameOverScreen(attackingPotato),100);
         //clearTimeout(timeOut);
     }else{
-        clearKeystrokes(attackingPotato);
-        setKeystrokes(10,attackingPotato);
+        setTimeout(() => 
+        {   clearKeystrokes(attackingPotato);
+            setKeystrokes(10,attackingPotato);
+        } 
+        , 1000);
     }
 }
 
@@ -610,6 +614,7 @@ const setKeystrokes = (keystrokeNum,potato) => {
 const clearKeystrokes = (potato) => {
     const keySequence = document.querySelector("#key-sequence-" + potato.id);
     keySequence.innerHTML = "";
+    potato.attack = 0;
     document.querySelector("#damage-points-" + potato.id ).children[1].innerText = potato.attack;
     potato.isPerfectCombo = true;
 }
