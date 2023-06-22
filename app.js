@@ -370,11 +370,13 @@ const playScreen = () => {
 }
 
 const gameOverScreen = (winner) =>{
+    clearInterval(powerupInterval);
     document.removeEventListener("keydown",EventHandlers.onKeydown);
     //clear elements not needed
     const top = document.querySelector(".top");
     top.innerHTML = "";
     document.querySelector(".powerupbg").innerHTML="";
+    document.querySelectorAll(".potato-powerup").forEach( element => element.innerHTML = "");
 
     document.querySelector("#" + potatoOne.healthBar.id).classList.add("hidden");
     document.querySelector("#" + potatoTwo.healthBar.id).classList.add("hidden");
@@ -425,7 +427,7 @@ const EventHandlers = {
             potatoPowerupDiv.append(potatoPowerupImg);
             //remove powerup from container
             //have to destroy the current powerup
-            document.querySelector(".powerup").remove();
+            document.querySelector(".powerup-div").remove();
             clearInterval(powerupInterval);
             potatoPowerupTarget = "";
             latestPowerup = "";
@@ -520,8 +522,9 @@ const attackOpponent = (attackingPotato, receivingPotato) => {
     //console.log("multiplier: " + attackingPotato.multiplier);
 
     //show attack!
+    attackAnimate(attackingPotato.div);
     attackingPotato.attack = Math.round(attackingPotato.attack * attackingPotato.multiplier);
-    console.log("Checking if attack is a round number: " + attackingPotato.attack);
+    //console.log("Checking if attack is a round number: " + attackingPotato.attack);
     showBigDamage(attackingPotato.attack,receivingPotato,attackingPotato);
     attackingPotato.numRounds++; 
 
@@ -618,20 +621,21 @@ const clearKeystrokes = (potato) => {
 //powerup appears randomly, and can only appear one at a time
 
 const Powerup = class {
-    constructor(id,name,imgSrc,descr,func){
+    constructor(id,name,imgSrc,imgDiv,descr,func){
         this.id = id,
         this.name = name,
         this.imgSrc = imgSrc,
-        this.imgDiv = createImg("powerup",imgSrc);
+        this.imgElement = createImg("powerup",imgSrc);
+        this.imgDiv = this.appendKeyTip(imgDiv);
         this.descr = descr;
         this.func = func;
         this.activated = "";
         this.xIncr = 1;
         this.yIncr = 3;
-        this.height = this.imgDiv.offsetHeight;
-        this.width = this.imgDiv.offsetWidth;
-        this.left = this.imgDiv.offsetLeft; 
-        this.top = this.imgDiv.offsetTop - top_height;
+        this.height = this.imgElement.offsetHeight;
+        this.width = this.imgElement.offsetWidth;
+        this.left = this.imgElement.offsetLeft; 
+        this.top = this.imgElement.offsetTop - top_height;
         this.parentContainer = document.querySelector(".powerupbg");
     }
 
@@ -661,11 +665,11 @@ const Powerup = class {
     get descr(){
         return this._descr;
     }
-    set imgDiv(imgDiv){
-        this._imgDiv = imgDiv;
+    set imgElement(imgElement){
+        this._imgElement = imgElement;
     }
-    get imgDiv(){
-        return this._imgDiv;
+    get imgElement(){
+        return this._imgElement;
     }
 
     set activated(activated){
@@ -715,7 +719,7 @@ const Powerup = class {
     set parentContainer(parentContainer){
         this._parentContainer = parentContainer;
     }
-    get top(){
+    get parentContainer(){
         return this._parentContainer;
     }
 
@@ -725,13 +729,16 @@ const Powerup = class {
     //     this.left = this.imgDiv.offsetLeft; 
     //     this.top = this.imgDiv.offsetTop - top_height;
     // }
-
-
+    appendKeyTip(div){
+        const keyTipImg = createImg("keytip-img",'./img/pressTip.png');
+        div.append(this.imgElement,keyTipImg);
+        return div;
+    }
 
     init() {
         //console.log(1);
         this.updateColor();
-        this.imgDiv.style.position = 'absolute';
+        this.imgElement.style.position = 'absolute';
         powerupInterval = setInterval((() => this.frame(this)), 5); //run frame every 5 ms
         hasPowerup = true;  
         latestPowerup = this;
@@ -740,7 +747,7 @@ const Powerup = class {
     updateColor() {
         const random = Math.floor((Math.random() * 2));
         potatoPowerupTarget = potatoes[random]; //select random potato
-        this.imgDiv.style.borderColor = potatoPowerupTarget.color;
+        this.imgElement.style.borderColor = potatoPowerupTarget.color;
         console.log(JSON.stringify(potatoPowerupTarget));
     }
 
@@ -799,6 +806,7 @@ const initPowerup = () =>{ //rename this?
         id: 0,
         name: "First Aid",
         img: "./img/powerup-firstaid.png",
+        imgDiv: () => createDiv("powerup-div"),
         descr: "Increases HP by a random amount between 20 - 80.",
         func: firstAid
         },
@@ -806,6 +814,7 @@ const initPowerup = () =>{ //rename this?
         id: 1,
         name: "Shield",
         img: "./img/powerup-shield.png",
+        imgDiv: () => createDiv("powerup-div"),
         descr: "Reduce damage of opposing player’s next attack by 20%.",
         func: shield
         },
@@ -813,6 +822,7 @@ const initPowerup = () =>{ //rename this?
         // id: 2,
         // name: "Timewarp",
         // img: "./img/powerup-timewarp.png",
+        //imgDiv: () => createDiv("powerup-div),
         // descr: "Delays opposing player’s moves for 5s.",
         // func: timeWarp
         // },
@@ -820,6 +830,7 @@ const initPowerup = () =>{ //rename this?
         id: 3,
         name: "Attack Up",
         img: "./img/powerup-attackup.png",
+        imgDiv: () => createDiv("powerup-div"),
         descr: "Increase damage of next attack by 10%.",
         func: attackUp
         },
@@ -832,7 +843,10 @@ const initPowerup = () =>{ //rename this?
         () => {
             potatoPowerupTarget = "";
             const randPowerup = powerups[Math.floor(Math.random() * powerups.length)];
-            let powerup = new Powerup(randPowerup.id, randPowerup.name, randPowerup.img, randPowerup.descr, randPowerup.func);
+            
+            let powerup = new Powerup(randPowerup.id, randPowerup.name, randPowerup.img, randPowerup.imgDiv(), randPowerup.descr, randPowerup.func);
+
+
             const container = document.querySelector(".powerupbg");
             container.appendChild(powerup.imgDiv);
             document.querySelector('.bottom').appendChild(container);
@@ -976,28 +990,35 @@ function slideInAnimate(element){
 }
 
 function scaleAnimate(element){ 
-    element.classList.add('scale-collectDamage');
+    element.classList.add('collectDamage-animate');
     setTimeout(()=> {
-      element.classList.remove('scale-collectDamage')
+      element.classList.remove('collectDamage-animate')
+    },500)
+}
+
+function attackAnimate(element){ 
+    element.classList.add('attack-animate');
+    setTimeout(()=> {
+      element.classList.remove('attack-animate')
     },500)
 }
 
 
 //check whether sequence is a perfect combination
 //if perfect combination, increase damage
-//show this effect  (DONE but havent shown effect)
+//show this effect  (DONE and shown effect)
 
 
 //check if on nth round on keyboard sequence
 //if on nth round, reflect multiplier effect
-//show multiplier effect (DONE but havent shown effect)
+//show multiplier effect (DONE and shown effect)
 
-//fix bug on powerup
+//fix bug on powerup (DONE)
 
 
 //add sprite animation
 
-//improve potato distance UI
+//improve potato distance UI (Let's ignore this for now)
 
 //add music
 

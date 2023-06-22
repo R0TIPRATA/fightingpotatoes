@@ -45,6 +45,15 @@
     }
 }
 
+@keyframes attackAnimation {
+    0%{
+        transform: translateX(0px);
+    }
+    50%{
+        transform: translateX(20px);
+    }
+}
+
 @keyframes shake {
     0% { transform: translateX(0) }
     25% { transform: translateX(5px) }
@@ -57,8 +66,12 @@
     animation: slideIn 0.2s ease-in;
 }
 
-.scale-collectDamage{
+.collectDamage-animate{
     animation: collectDamage 0.2s ease-in;
+}
+
+.attack-animate{
+    animation: attackAnimation 0.2s ease-out;
 }
 
 
@@ -108,9 +121,26 @@ p{
     color: pink;
 }
 
-.powerupbg img{
+/* .powerupbg img{
     border: 4px solid;
     border-radius: 50%;
+} */
+
+.powerup-div{
+    position:absolute;
+}
+
+.powerup{
+    border: 4px solid;
+    border-radius: 50%;
+}
+
+.keytip-img{
+    position: relative;
+    z-index: 2;
+    top: 80px;
+    display: block;
+    left: 6px;
 }
 
 .play-btn, .help-btn, .settings-btn, .replay-btn {
