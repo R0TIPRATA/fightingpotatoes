@@ -69,7 +69,6 @@ const playScreen = () => {
 
 const gameOverScreen = (winner) =>{
     clearInterval(powerupInterval);
-    clearTimeout(gameOverInterval);
     document.removeEventListener("keydown",EventHandlers.onKeydown);
     //clear elements not needed
     const top = document.querySelector(".top");
@@ -105,14 +104,19 @@ const EventHandlers = {
         const potatoOneKeys = {actionKeys: ["w","a","s","d"], finalKey: " ", powerupKey:"c"};
         const potatoTwoKeys = {actionKeys: ["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"], finalKey: "Enter", powerupKey: "/"};
         const input = event.key;
-        if (potatoOne.keystrokeElementArr.length > 1 && potatoOneKeys.actionKeys.includes(input)) { validateKey(potatoOne, input); } //if keys are arrows, or enter
+        //P1: if key input is one of arrows, run function validate key
+        if (potatoOne.keystrokeElementArr.length > 1 && potatoOneKeys.actionKeys.includes(input)) { validateKey(potatoOne, input); }
+        //P2: if keys input is one of WASD, run function validate key
         if (potatoTwo.keystrokeElementArr.length > 1 && potatoTwoKeys.actionKeys.includes(input)) { validateKey(potatoTwo, input); }
-        if (potatoOne.keystrokeElementArr.length === 1 && potatoOneKeys.finalKey === input){attackOpponent(potatoOne,potatoTwo)}; //potato 1 attacks potato 2
+
+        //P1: if key is enter, and it is the last key, attack P2
+        if (potatoOne.keystrokeElementArr.length === 1 && potatoOneKeys.finalKey === input){attackOpponent(potatoOne,potatoTwo)}; 
+        //P2: if key is space, and it is the last key, attack P1
         if (potatoTwo.keystrokeElementArr.length === 1 && potatoTwoKeys.finalKey === input){attackOpponent(potatoTwo,potatoOne)};
         
+        //listen to "h" for powerup
         const powerupKey = "h";
         if(hasPowerup && input === powerupKey ){
-            //handlePowerupCollision = false
             //console.log(potatoPowerupTarget.id + "got the powerup!");
             potatoPowerupTarget.powerup = latestPowerup;
             //display powerup
@@ -156,17 +160,18 @@ const EventHandlers = {
 // Functions used to determine whether key is correct, or missed, or is the last key in the seq.
 //=====================
 
+//validate key checks if the key user presses matches the current key
 const validateKey = (potato, input) =>{
     input === potato.activeKey ? setCorrect(potato, potato.keystrokeElementArr) : setMissed(potato, potato.keystrokeElementArr);
 }
 
-//count if correct == 9 
+//if correct, 1) set styles to correct; 2) increase damage points; 3) set the next keystroke, 4) remove keystroke from array of keystrokes to complete
 const setCorrect = (potato, keystrokeElementArr) => {
     const currentKeystroke = keystrokeElementArr[0];
     currentKeystroke.dataset.keystrokeStatus = "correct";
     potato.attack += attackPower;
     const damageValueElement = document.querySelector(`#damage-points-${potato.id}`).children[1];
-    damageValueElement.innerText = potato.attack; //updates damage box
+    damageValueElement.innerText = potato.attack; //updates damage points
     scaleAnimate(damageValueElement)
     const nextKeystroke = keystrokeElementArr[1];
     potato.activeKey = nextKeystroke.dataset.keystroke;
@@ -174,7 +179,7 @@ const setCorrect = (potato, keystrokeElementArr) => {
     potato.keystrokeElementArr.shift();
 }
 
-
+//if missed, similar to setCorrect. Difference is the perfect combo is reset to 0, and damage points is not increased.
 const setMissed = (potato, keystrokeElementArr) => {
     potato.resetPerfectCombo();
     const currentKeystroke = keystrokeElementArr[0];
@@ -190,15 +195,9 @@ const setMissed = (potato, keystrokeElementArr) => {
 
 const attackOpponent = (attackingPotato, receivingPotato) => {
     //reduce receiving potato hp
-    attackingPotato.attack += attackPower; //the last attack
+    attackingPotato.attack += attackPower; //accumulate last damage points
     document.querySelector("#damage-points-" + attackingPotato.id ).children[1].innerText = attackingPotato.attack;
     
-    //check if got attackup powerup, increase final attack by 10%
-    // console.log("attacking potato:" + attackingPotato.id);
-    // console.log("attacking potato powerup:" + JSON.stringify(attackingPotato.powerup)); 
-
-    // console.log("receiving potato:" + receivingPotato.id);
-    // console.log("receiving potato powerup:" + receivingPotato.powerup.activated);
     if(attackingPotato.powerup.activated ==="Attack Up"){
         attackingPotato.attack = Math.round((attackingPotato.attack/100) * 120);
     }
@@ -217,9 +216,7 @@ const attackOpponent = (attackingPotato, receivingPotato) => {
         attackingPotato.multiplier = 3;
     }
 
-    //console.log("multiplier: " + attackingPotato.multiplier);
-
-    //show attack!
+    //show attack animation!
     attackingPotato.id == 0 ? moveRightAnimate(attackingPotato.div) : moveLeftAnimate(attackingPotato.div);
     attackingPotato.attack = Math.round(attackingPotato.attack * attackingPotato.multiplier);
     //console.log("Checking if attack is a round number: " + attackingPotato.attack);
@@ -230,22 +227,19 @@ const attackOpponent = (attackingPotato, receivingPotato) => {
     receivingPotato.hp -= attackingPotato.attack;
     receivingPotato.healthBar.updateHealth(receivingPotato.hp);
 
-
+    //remove powerup from UI
     if(attackingPotato.powerup.activated ==="Attack Up"){
         attackingPotato.powerupDiv.remove();
         attackingPotato.powerup="";
-        //console.log("attack! :" + attackingPotato.attack);
     }
     if(receivingPotato.powerup.activated ==="Shield"){
         receivingPotato.powerupDiv.remove();
         receivingPotato.powerup="";
-        //console.log("attack! :" + attackingPotato.attack);
     }
     
     
     if(receivingPotato.hp <= 0) {
-        gameOverInterval = setTimeout(() => gameOverScreen(attackingPotato),100);
-        //clearTimeout(timeOut);
+        gameOverScreen(attackingPotato);
     }else{
         setTimeout(() => 
         {   clearKeystrokes(attackingPotato);
@@ -323,36 +317,6 @@ const showPowerup = () =>{
         }    
     ,randDelay);
 }
-
-/*
----------------
-To-Do List
----------------
-*/
-
-//check whether sequence is a perfect combination
-//if perfect combination, increase damage
-//show this effect  (DONE and shown effect)
-
-
-//check if on nth round on keyboard sequence
-//if on nth round, reflect multiplier effect
-//show multiplier effect (DONE and shown effect)
-
-//fix bug on powerup (DONE)
-
-
-//add sprite animation
-
-//improve potato distance UI (Let's ignore this for now)
-
-//add music
-
-//include instructions
-
-//include settings?
-
-//start on Github writeup
 
 
 /*
