@@ -109,3 +109,11 @@ function moveLeftAnimate(element){
       element.classList.remove('move-left-animate')
     },500)
 }
+
+function jumpingZeroAnimate(element){ 
+    element.classList.add('jumping-0-animate');
+}
+
+function jumpingOneAnimate(element){ 
+    element.classList.add('jumping-1-animate');
+}

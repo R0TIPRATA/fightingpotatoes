@@ -29,12 +29,13 @@ const titleScreen = () => {
 
     // add buttons
     const playBtn = createButton("play-btn");
-    const helpBtn = createButton("help-btn");
-    const settingsBtn = createButton("settings-btn");
+    //const helpBtn = createButton("help-btn");
+    //const settingsBtn = createButton("settings-btn");
     playBtn.addEventListener("click", playScreen);
     const buttonsWrapper = document.createElement("div");
     buttonsWrapper.classList.add("buttons-wrapper");
-    buttonsWrapper.append(helpBtn,playBtn,settingsBtn);
+    buttonsWrapper.appendChild(playBtn);
+    //buttonsWrapper.append(helpBtn,playBtn,settingsBtn);
 
     //append all elements
     top.append(titleImg);
@@ -43,10 +44,14 @@ const titleScreen = () => {
 }
 
 const playScreen = () => {
+    //animate potato avatars
+    jumpingZeroAnimate(document.querySelector("#potato-avatar-0"));
+    jumpingOneAnimate(document.querySelector("#potato-avatar-1"));
     document.querySelector(".buttons-wrapper") && document.querySelector(".buttons-wrapper").remove(); //if from title page, remove buttons
     const top = document.querySelector(".top");
     top.innerHTML = "";
     top.append(createActionRowDiv(potatoOne),createActionRowDiv(potatoTwo));
+    
     
     //show healthBar
     document.querySelector("#" + potatoOne.healthBar.id).classList.remove("hidden");
@@ -246,7 +251,7 @@ const attackOpponent = (attackingPotato, receivingPotato) => {
         {   clearKeystrokes(attackingPotato);
             setKeystrokes(10,attackingPotato);
         } 
-        , 1000);
+        , 200);
     }
 }
 

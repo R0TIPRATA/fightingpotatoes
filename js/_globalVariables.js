@@ -1,13 +1,14 @@
 const attackPower = 2; //damage taken per attack
 const keystrokeNum = 10; //determines how many keys you want before attacking
 const maxAttackPower = attackPower * keystrokeNum;
-const powerUpDurationLowerRange = 1;
-const powerUpDurationUpperRange = 5; //power up will appear every 1 - 5 s
+const powerUpDurationLowerRange = 10;
+const powerUpDurationUpperRange = 20; //power up will appear every 10 - 20 s
 let hasPowerup = false;
 let latestPowerup = "";
-const colorOne = "#ff9933"; //to refactor
-const colorTwo = "#4700b3" //to refactor
+const colorOne = "#ff9933"; //orange
+const colorTwo = "#4700b3" //purple
 let potatoPowerupTarget = "";
+const dialog = document.createElement("dialog");
 const top_height = document.querySelector(".top").offsetHeight;
 let powerupInterval;
 let gameOverInterval;
@@ -18,7 +19,6 @@ const powerups = [
     img: "./img/powerup-firstaid.png",
     imgDiv: () => createDiv("powerup-div"),
     descr: "Increases HP by a random amount between 20 - 80.",
-    //func: firstAid,
     func:  firstAid = (potato) => {
         const max = 100;
         const min = 20;

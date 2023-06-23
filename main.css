@@ -84,6 +84,8 @@
     }
 }
 
+
+
 .slide-in-animate{
     animation: slideIn 0.2s ease-in;
 }
@@ -100,8 +102,12 @@
     animation: moveLeft 0.2s ease-out;
 }
 
-.jumping-animate{
-    animation: jumping 1s ease-out infinite;
+.jumping-0-animate{
+    animation: jumping 1s ease-out infinite backwards;
+}
+
+.jumping-1-animate{
+    animation: jumping 1s ease-out infinite backwards 0.4s;
 }
 
 body{
@@ -119,6 +125,7 @@ p{
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    padding-top:60px;
 }
 
 .bottom{
@@ -137,6 +144,7 @@ p{
     grid-column-end: 2;
     grid-row-start: 1;
     z-index:3;
+    padding-top:24px;
 }
 
 .powerupbg{
@@ -332,8 +340,17 @@ canvas {
 
 .potato-avatar{
     position:relative;
+    margin-bottom: 24px;
     /* animation: jumping 2s ease-out infinite backwards; */
 }
+
+/* #potato-avatar-0{
+    animation: jumping 1s ease-out infinite backwards;
+}
+
+#potato-avatar-1{
+    animation: jumping 1s ease-out infinite backwards 0.4s;
+} */
 
 #potato-avatar-0  .big-dmg{
     left:-35px;
