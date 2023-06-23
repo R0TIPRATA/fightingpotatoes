@@ -6,7 +6,7 @@
 Potato and Sweet Potato are fighting! Who will win? 
 
 <h3>How to Play</h3>
-![alt text](https://i.ibb.co/k24V4VS/instructions.png)
+<img src= "https://i.ibb.co/k24V4VS/instructions.png"/>
 
 <h3>Deliverables</h3>
 <b>MVP</b>
