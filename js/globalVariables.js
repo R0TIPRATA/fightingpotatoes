@@ -1,8 +1,8 @@
 const attackPower = 2; //damage taken per attack
 const keystrokeNum = 10; //determines how many keys you want before attacking
 const maxAttackPower = attackPower * keystrokeNum;
-const powerUpDurationLowerRange = 10;
-const powerUpDurationUpperRange = 20; //power up will appear every 10 - 20 s
+const powerUpDurationLowerRange = 5;
+const powerUpDurationUpperRange = 10; //power up will appear every 5-10
 let hasPowerup = false;
 let latestPowerup = "";
 const colorOne = "#ff9933"; //orange
@@ -11,7 +11,7 @@ let potatoPowerupTarget = "";
 const dialog = document.createElement("dialog");
 const top_height = document.querySelector(".top").offsetHeight;
 let powerupInterval;
-let gameOverInterval;
+
 const powerups = [
     {
     id: 0,
