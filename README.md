@@ -9,6 +9,7 @@ Potato and Sweet Potato are fighting! Who will win?
 For detailed instructions please view here: 
 
 <a>https://docs.google.com/presentation/d/1uxQQuWrpphfZ9BBiCcVIqe0GlkMkcArAeu5G8des4cc/edit?pli=1#slide=id.g24f285b7850_0_16</a>
+![alt text](https://ibb.co/YBc4c4L)
 
 <h3>Deliverables</h3>
 <b>MVP</b>
