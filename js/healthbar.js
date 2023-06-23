@@ -1,6 +1,6 @@
-
 const HealthBar = class {
-    constructor(x,y,w,h,maxHp){
+    constructor(id,x,y,w,h,maxHp){
+        this.id = id;
         this.x = x;
         this.y = y;
         this.w = w;
@@ -19,7 +19,7 @@ const HealthBar = class {
     }
 
     updateHealth(hp){
-        if (hp < 0){hp = 0}
+        if (hp < 0){hp = 0} 
         this.health = hp;
         this.w = (hp/this.maxHp) * this.maxWidth;
     }
