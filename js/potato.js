@@ -2,7 +2,7 @@ const Potato = class {
     constructor(id,color){
         this.id = id;
         this.color = color;
-        this.maxHp = 100;
+        this.maxHp = 200;
         this.hp = this.maxHp;
         this.attack = 0;
         this.keystrokeElementArr = [];
@@ -151,37 +151,5 @@ const Potato = class {
     //     return extraPoints;
     // }
 }
-
-// const HealthBar = class {
-//     constructor(id,x,y,w,h,maxHp){
-//         this.id = id;
-//         this.x = x;
-//         this.y = y;
-//         this.w = w;
-//         this.h = h;
-//         this.maxHp = maxHp;
-//         this.maxWidth = w;
-//         this.hp = maxHp;
-//     }
-
-//     show(context){
-//         context.lineWidth = 4;
-//         context.strokeStyle = "#333";
-//         context.fillStyle = "green";
-//         context.fillRect(this.x, this.y, this.w, this.h);
-//         context.strokeRect(this.x,this.y,this.maxWidth, this.h);
-//     }
-
-//     updateHealth(hp){
-//         if (hp < 0){hp = 0} 
-//         this.health = hp;
-//         this.w = (hp/this.maxHp) * this.maxWidth;
-//     }
-// }
-
-
-// let potatoOne = new Potato(0,colorOne);
-// let potatoTwo = new Potato(1,colorTwo);
-// const potatoes = [potatoOne, potatoTwo]; //used for powerup functions
 
 
