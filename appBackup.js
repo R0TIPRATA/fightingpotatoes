@@ -416,13 +416,13 @@ const EventHandlers = {
         const powerupKey = "h";
         if(hasPowerup && input === powerupKey ){
             //handlePowerupCollision = false
-            console.log(potatoPowerupTarget.id + "got the powerup!"); //BUG HERE
+            //console.log(potatoPowerupTarget.id + "got the powerup!");
             potatoPowerupTarget.powerup = latestPowerup;
             //display powerup
             potatoPowerupTarget.powerupDiv.innerHTML= "";
             const potatoPowerupDiv = potatoPowerupTarget.powerupDiv;
             const potatoPowerupImg = createImg("potato-powerup-img", latestPowerup.imgSrc, "potato-powerup-img-" + potatoPowerupTarget.id);
-            console.log("img", potatoPowerupImg)
+            //console.log("img", potatoPowerupImg)
             //potatoPowerupImg.style.width = "20px";
             const potatoDiv = document.querySelector("#potato-" + potatoPowerupTarget.id );
             potatoDiv.appendChild(potatoPowerupDiv);
@@ -762,7 +762,7 @@ const Powerup = class {
         const random = Math.floor((Math.random() * 2));
         potatoPowerupTarget = potatoes[random]; //select random potato
         this.imgElement.style.borderColor = potatoPowerupTarget.color;
-        console.log(JSON.stringify(potatoPowerupTarget));
+        //console.log(JSON.stringify(potatoPowerupTarget));
     }
 
    handleCollision(powerup) {
@@ -785,8 +785,8 @@ const Powerup = class {
         if (left <= 0 || left + powerup.width >= container_width) { //if doesnt got out of bound on left or on the right
           powerup.xIncr = ~powerup.xIncr + 1;
           //xIncr += xIncr;
-          powerup.updateColor();
-          console.log("hey1");
+          //powerup.updateColor();
+          //console.log("hey1");
         }
         if (top <= 0 || top + powerup.height >= container_height) { //if doesnt got out of bound on bottom or on the top
           powerup.yIncr = ~powerup.yIncr + 1;
@@ -794,7 +794,7 @@ const Powerup = class {
           //yIncr += 1;
           powerup.updateColor();
           //console.log(4);
-          console.log("hey2");
+          //console.log("hey2");
         }
     }
 
@@ -865,7 +865,6 @@ const initPowerup = () =>{ //rename this?
             container.appendChild(powerup.imgDiv);
             document.querySelector('.bottom').appendChild(container);
             powerup.init();
-            powerup = "";
         }    
         
     ,randDelay);
@@ -881,7 +880,7 @@ const firstAid = (potato) => {
     const max = 100;
     const min = 20;
     const addHealth = potato.hp + Math.floor(Math.random()*(max-min)) + min;
-    console.log(addHealth);
+    //console.log(addHealth);
     potato.healthBar.updateHealth(addHealth);
     potato.powerup = "";
     potato.powerupDiv.remove();
