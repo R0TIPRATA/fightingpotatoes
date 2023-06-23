@@ -27,7 +27,24 @@ Potato and Sweet Potato are fighting! Who will win?
   <li>Pause function in-game.✖️</li>
 </ol>
 
+<h3>Technologies</h3>
+• HTML
+• CSS
+• Javascript
 
-<h3>Challenges</h3>
+<!-- <h3>Challenges</h3>
+<h4>Identifying P1 and P2 keypresses</h4>
+
+
+<h4>Animation and logic for powerup</h4>
+
+
+<h4>Document Structure</h4> -->
+
 
 <h3>References</h3>
+<ol>
+  <li>Building Healthbar: https://www.youtube.com/watch?v=Wh2kVSPi_sE&t=454s </li>
+  <li>Bouncing animation: https://www.youtube.com/watch?v=K5lpQKOBz0Q&t=234s</li>
+  <li>Shake animation: https://unused-css.com/blog/css-shake-animation</li>
+</ol>
