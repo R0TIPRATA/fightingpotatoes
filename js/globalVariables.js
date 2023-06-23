@@ -11,6 +11,7 @@ let potatoPowerupTarget = "";
 const dialog = document.createElement("dialog");
 const top_height = document.querySelector(".top").offsetHeight;
 let powerupInterval;
+
 const powerups = [
     {
     id: 0,
